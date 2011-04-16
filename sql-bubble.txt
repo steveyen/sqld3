@@ -91,7 +91,7 @@ set all_graphs {
        {line CREATE {or {} TEMP TEMPORARY} TABLE {opt IF NOT EXISTS}}
        {line {optx /database-name .} /table-name
           {tailbranch
-            {line ( {loop column-def ,} {loop {} {, table-constraint}} )}
+            {line ( {loop column-def ,} {loop {} {line , table-constraint}} )}
             {line AS select-stmt}
           }
        }
