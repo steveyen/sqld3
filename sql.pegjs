@@ -25,13 +25,13 @@ alter_table_stmt =
 ( ( ALTER TABLE ( database_name dot )? table_name ) ( RENAME TO new_table_name ) ( ADD ( COLUMN )? column_def ) )
 
 analyze_stmt =
-( ANALYZE ( nil / database_name / table_or_index_name / ( database_name dot table_or_index_name ) ) )
+  ( ANALYZE ( database_name / table_or_index_name / ( database_name dot table_or_index_name ) )? )
 
 attach_stmt =
-( ATTACH ( DATABASE / nil ) expr AS database_name )
+  ( ATTACH ( DATABASE )? expr AS database_name )
 
 begin_stmt =
-( BEGIN ( nil / DEFERRED / IMMEDIATE / EXCLUSIVE ) ( TRANSACTION )? )
+  ( BEGIN ( DEFERRED / IMMEDIATE / EXCLUSIVE )? ( TRANSACTION )? )
 
 commit_stmt =
 ( ( COMMIT / END ) ( TRANSACTION )? )
@@ -49,22 +49,30 @@ create_index_stmt =
 ( ( CREATE ( UNIQUE )? INDEX ( IF NOT EXISTS )? ) ( ( database_name dot )? index_name ON table_name lparen ( indexed_column comma )+ rparen ) )
 
 indexed_column =
-( column_name ( COLLATE collation_name )? ( ASC / DESC / nil ) )
+  ( column_name ( COLLATE collation_name )? ( ASC / DESC )? )
 
 create_table_stmt =
-( ( CREATE ( nil / TEMP / TEMPORARY ) TABLE ( IF NOT EXISTS )? ) ( ( database_name dot )? table_name ( lparen ( column_def comma )+ ( nil ( comma table_constraint ) )+ rparen ) ( AS select_stmt ) ) )
+  ( ( CREATE ( TEMP / TEMPORARY )? TABLE ( IF NOT EXISTS )? )
+    ( ( database_name dot )? table_name ( lparen ( column_def comma )+ ( nil ( comma table_constraint ) )+ rparen ) ( AS select_stmt ) ) )
 
 column_def =
-( column_name ( type_name / nil ) ( nil ( nil column_constraint nil ) )+ )
+  ( column_name ( type_name )? ( column_constraint )+ )
 
 type_name =
-( ( name nil )+ ( nil / ( lparen signed_number rparen ) / ( lparen signed_number comma signed_number rparen ) ) )
+  ( ( name )+ ( ( lparen signed_number rparen ) / ( lparen signed_number comma signed_number rparen ) )? )
 
 column_constraint =
-( ( CONSTRAINT name )? ( ( PRIMARY KEY ( nil / ASC / DESC ) conflict_clause ( AUTOINCREMENT )? ) / ( NOT NULL conflict_clause ) / ( UNIQUE conflict_clause ) / ( CHECK lparen expr rparen ) / ( DEFAULT ( signed_number / literal_value / ( lparen expr rparen ) ) ) / ( COLLATE collation_name ) / foreign_key_clause ) )
+  ( ( CONSTRAINT name )?
+    ( ( PRIMARY KEY ( ASC / DESC )? conflict_clause ( AUTOINCREMENT )? )
+    / ( NOT NULL conflict_clause )
+    / ( UNIQUE conflict_clause )
+    / ( CHECK lparen expr rparen )
+    / ( DEFAULT ( signed_number / literal_value / ( lparen expr rparen ) ) )
+    / ( COLLATE collation_name )
+    / foreign_key_clause ) )
 
 signed_number =
-( ( nil / plus / minus ) numeric_literal )
+  ( ( plus / minus )? numeric_literal )
 
 table_constraint =
 ( ( CONSTRAINT name )? ( ( ( ( PRIMARY KEY ) / UNIQUE ) lparen ( indexed_column comma )+ rparen conflict_clause ) / ( CHECK lparen expr rparen ) / ( FOREIGN KEY lparen ( column_name comma )+ rparen foreign_key_clause ) ) )
@@ -76,10 +84,15 @@ conflict_clause =
 ( ( ON CONFLICT ( ROLLBACK / ABORT / FAIL / IGNORE / REPLACE ) ) )?
 
 create_trigger_stmt =
-( ( CREATE ( nil / TEMP / TEMPORARY ) TRIGGER ( IF NOT EXISTS )? ) ( ( database_name dot )? trigger_name ( BEFORE / AFTER / ( INSTEAD OF ) / nil ) ) ( ( DELETE / INSERT / ( UPDATE ( OF ( column_name comma )+ )? ) ) ON table_name ) ( ( FOR EACH ROW )? ( WHEN expr )? ) ( BEGIN ( ( ( update_stmt / insert_stmt / delete_stmt / select_stmt ) semicolon ) nil )+ END ) )
+  ( ( CREATE ( TEMP / TEMPORARY )? TRIGGER ( IF NOT EXISTS )? )
+    ( ( database_name dot )? trigger_name ( BEFORE / AFTER / ( INSTEAD OF ) )? )
+    ( ( DELETE / INSERT / ( UPDATE ( OF ( column_name comma )+ )? ) ) ON table_name )
+    ( ( FOR EACH ROW )? ( WHEN expr )? )
+    ( BEGIN ( ( ( update_stmt / insert_stmt / delete_stmt / select_stmt ) semicolon ) nil )+ END ) )
 
 create_view_stmt =
-( ( CREATE ( nil / TEMP / TEMPORARY ) VIEW ( IF NOT EXISTS )? ) ( ( database_name dot )? view_name AS select_stmt ) )
+  ( ( CREATE ( TEMP / TEMPORARY )? VIEW ( IF NOT EXISTS )? )
+    ( ( database_name dot )? view_name AS select_stmt ) )
 
 create_virtual_table_stmt =
 ( ( CREATE VIRTUAL TABLE ( database_name dot )? table_name ) ( USING module_name ( lparen ( module_argument comma )+ rparen )? ) )
@@ -106,7 +119,24 @@ drop_view_stmt =
 ( DROP VIEW ( IF EXISTS )? ( database_name dot )? view_name )
 
 expr =
-( literal_value / bind_parameter / ( ( ( database_name dot )? table_name dot )? column_name ) / ( unary_operator expr ) / ( expr binary_operator expr ) / ( function_name lparen ( ( ( DISTINCT )? ( expr comma )+ ) / nil / star ) rparen ) / ( lparen expr rparen ) / ( CAST lparen expr AS type_name rparen ) / ( expr COLLATE collation_name ) / ( expr ( NOT )? ( LIKE / GLOB / REGEXP / MATCH ) expr ( ESCAPE expr )? ) / ( expr ( ISNULL / NOTNULL / ( NOT NULL ) ) ) / ( expr IS ( NOT )? expr ) / ( expr ( NOT )? BETWEEN expr AND expr ) / ( expr ( NOT )? IN ( ( lparen ( nil / select_stmt / ( expr comma )+ ) rparen ) / ( ( database_name dot )? table_name ) ) ) / ( ( ( NOT )? EXISTS )? lparen select_stmt rparen ) / ( CASE ( expr )? ( ( WHEN expr THEN expr ) nil )+ ( ELSE expr )? END ) / raise_function )
+  ( literal_value
+  / bind_parameter
+  / ( ( ( database_name dot )? table_name dot )? column_name )
+  / ( unary_operator expr )
+  / ( expr binary_operator expr )
+  / ( function_name lparen ( ( DISTINCT ? ( expr comma )+ ) / star )? rparen )
+  / ( lparen expr rparen )
+  / ( CAST lparen expr AS type_name rparen )
+  / ( expr COLLATE collation_name )
+  / ( expr NOT ? ( LIKE / GLOB / REGEXP / MATCH ) expr ( ESCAPE expr )? )
+  / ( expr ( ISNULL / NOTNULL / ( NOT NULL ) ) )
+  / ( expr IS NOT ? expr )
+  / ( expr NOT ? BETWEEN expr AND expr )
+  / ( expr NOT ? IN ( ( lparen ( select_stmt / ( expr comma )+ )? rparen )
+                         / ( ( database_name dot )? table_name ) ) )
+  / ( ( NOT ? EXISTS )? lparen select_stmt rparen )
+  / ( CASE expr ? ( WHEN expr THEN expr )+ ( ELSE expr )? END )
+  / raise_function )
 
 raise_function =
 ( RAISE lparen ( IGNORE / ( ( ROLLBACK / ABORT / FAIL ) comma error_message ) ) rparen )
@@ -130,25 +160,43 @@ reindex_stmt =
 ( REINDEX nil collation_name ( ( database_name dot )? table_name index_name ) )
 
 select_stmt =
-( ( ( select_core nil ) ( nil compound_operator nil ) )+ ( ORDER BY ( ordering_term comma )+ )? ( LIMIT expr ( ( OFFSET / comma ) expr )? )? )
+  ( select_core compound_operator )+
+  ( ORDER BY ( ordering_term comma )+ )?
+  ( LIMIT expr ( ( OFFSET / comma ) expr )? )?
 
 select_core =
-( ( SELECT ( nil / DISTINCT / ALL ) ( result_column comma )+ ) ( FROM join_source )? ( WHERE expr )? ( GROUP BY ( ordering_term comma )+ ( HAVING expr )? )? )
+  SELECT ( DISTINCT / ALL )?
+         ( result_column comma )+
+  ( FROM join_source )?
+  ( WHERE expr )?
+  ( GROUP BY ( ordering_term comma )+ ( HAVING expr )? )?
 
 result_column =
-( star / ( table_name dot star ) / ( expr ( ( AS )? column_alias )? ) )
+  whitespace
+  ( star
+    / ( table_name dot star )
+    / ( expr ( AS ? column_alias )? ) )
 
 join_source =
-( single_source ( ( ( nil join_op single_source join_constraint nil ) nil )+ )? )
+  single_source ( ( join_op single_source join_constraint )+ )?
 
 single_source =
-( ( ( database_name dot )? table_name ( ( AS )? table_alias )? ( nil / ( INDEXED BY index_name ) / ( NOT INDEXED ) ) ) / ( lparen select_stmt rparen ( ( AS )? table_alias )? ) / ( lparen join_source rparen ) )
+  whitespace
+  ( ( ( database_name dot )? table_name ( AS ? table_alias )?
+      ( ( INDEXED BY index_name )
+        / ( NOT INDEXED ) )? )
+    / ( lparen select_stmt rparen ( AS ? table_alias )? )
+    / ( lparen join_source rparen ) )
 
 join_op =
-( comma / ( ( NATURAL )? ( nil / ( LEFT ( OUTER / nil ) ) / INNER / CROSS ) JOIN ) )
+  whitespace
+  ( comma
+  / ( NATURAL ?
+      ( ( LEFT ( OUTER ) ? ) / INNER / CROSS )? JOIN ) )
 
 join_constraint =
-( ( ON expr ) / ( USING lparen ( column_name comma )+ rparen ) / nil )
+  ( ( ON expr )
+  / ( USING lparen ( column_name comma )+ rparen ) )?
 
 ordering_term =
 ( expr ( COLLATE collation_name )? ( nil / ASC / DESC ) )
@@ -282,7 +330,8 @@ ESCAPE = whitespace1 "ESCAPE"
 EXCEPT = whitespace1 "EXCEPT"
 EXCLUSIVE = whitespace1 "EXCLUSIVE"
 EXISTS = whitespace1 "EXISTS"
-EXPLAIN = whitespace1 "EXPLAIN"
+EXPLAIN =
+  whitespace "EXPLAIN"
 FAIL = whitespace1 "FAIL"
 FOR = whitespace1 "FOR"
 FOREIGN = whitespace1 "FOREIGN"
@@ -336,7 +385,8 @@ RESTRICT = whitespace1 "RESTRICT"
 ROLLBACK = whitespace1 "ROLLBACK"
 ROW = whitespace1 "ROW"
 SAVEPOINT = whitespace1 "SAVEPOINT"
-SELECT = whitespace1 "SELECT"
+SELECT =
+  whitespace "SELECT"
 SET = whitespace1 "SET"
 TABLE = whitespace1 "TABLE"
 TEMP = whitespace1 "TEMP"
