@@ -1,5 +1,9 @@
 #!/usr/bin/env ruby
 
+$keywords['EXPLAIN'] = true
+$keywords['QUERY'] = true
+$keywords['PLAN'] = true
+
 $override[:sql_stmt] = <<-EOS
 ( ( EXPLAIN ( QUERY PLAN )? )? (
 //  alter_table_stmt

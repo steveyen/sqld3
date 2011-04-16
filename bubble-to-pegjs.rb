@@ -85,6 +85,7 @@ escape_char = '\\\\' .
 nil = ''
 
 whitespace = [\\s]*
+whitespace1 = [\\s]+
 
 unary_operator = '-' / '+' / '~' / 'NOT'
 binary_operator =
@@ -144,6 +145,6 @@ load $grammar
 print "#{$extra}\n"
 
 $keywords.keys.sort.each do |keyword|
-  print "#{keyword} = whitespace \"#{keyword}\"\n"
+  print "#{keyword} = whitespace1 \"#{keyword}\"\n"
 end
 
