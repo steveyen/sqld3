@@ -1,9 +1,9 @@
-// generated pegjs, from tmp/rules.rb and bubble-to-pegjs_ex.rb
+// originally generated pegjs, from tmp/rules.rb and bubble-to-pegjs_ex.rb
 
 start = sql_stmt_list
 
 sql_stmt_list =
-( ( sql_stmt )? semicolon )+ 
+( ( sql_stmt )? semicolon )+
 
 sql_stmt =
 ( ( EXPLAIN ( QUERY PLAN )? )? (
@@ -22,154 +22,154 @@ sql_stmt =
 ) )
 
 alter_table_stmt =
-( ( ALTER TABLE ( database_name dot )? table_name ) ( RENAME TO new_table_name ) ( ADD ( COLUMN )? column_def ) ) 
+( ( ALTER TABLE ( database_name dot )? table_name ) ( RENAME TO new_table_name ) ( ADD ( COLUMN )? column_def ) )
 
 analyze_stmt =
-( ANALYZE ( nil / database_name / table_or_index_name / ( database_name dot table_or_index_name ) ) ) 
+( ANALYZE ( nil / database_name / table_or_index_name / ( database_name dot table_or_index_name ) ) )
 
 attach_stmt =
-( ATTACH ( DATABASE / nil ) expr AS database_name ) 
+( ATTACH ( DATABASE / nil ) expr AS database_name )
 
 begin_stmt =
-( BEGIN ( nil / DEFERRED / IMMEDIATE / EXCLUSIVE ) ( TRANSACTION )? ) 
+( BEGIN ( nil / DEFERRED / IMMEDIATE / EXCLUSIVE ) ( TRANSACTION )? )
 
 commit_stmt =
-( ( COMMIT / END ) ( TRANSACTION )? ) 
+( ( COMMIT / END ) ( TRANSACTION )? )
 
 rollback_stmt =
-( ROLLBACK ( TRANSACTION )? ( TO ( SAVEPOINT )? savepoint_name )? ) 
+( ROLLBACK ( TRANSACTION )? ( TO ( SAVEPOINT )? savepoint_name )? )
 
 savepoint_stmt =
-( SAVEPOINT savepoint_name ) 
+( SAVEPOINT savepoint_name )
 
 release_stmt =
-( RELEASE ( SAVEPOINT )? savepoint_name ) 
+( RELEASE ( SAVEPOINT )? savepoint_name )
 
 create_index_stmt =
-( ( CREATE ( UNIQUE )? INDEX ( IF NOT EXISTS )? ) ( ( database_name dot )? index_name ON table_name lparen ( indexed_column comma )+ rparen ) ) 
+( ( CREATE ( UNIQUE )? INDEX ( IF NOT EXISTS )? ) ( ( database_name dot )? index_name ON table_name lparen ( indexed_column comma )+ rparen ) )
 
 indexed_column =
-( column_name ( COLLATE collation_name )? ( ASC / DESC / nil ) ) 
+( column_name ( COLLATE collation_name )? ( ASC / DESC / nil ) )
 
 create_table_stmt =
-( ( CREATE ( nil / TEMP / TEMPORARY ) TABLE ( IF NOT EXISTS )? ) ( ( database_name dot )? table_name ( lparen ( column_def comma )+ ( nil ( comma table_constraint ) )+ rparen ) ( AS select_stmt ) ) ) 
+( ( CREATE ( nil / TEMP / TEMPORARY ) TABLE ( IF NOT EXISTS )? ) ( ( database_name dot )? table_name ( lparen ( column_def comma )+ ( nil ( comma table_constraint ) )+ rparen ) ( AS select_stmt ) ) )
 
 column_def =
-( column_name ( type_name / nil ) ( nil ( nil column_constraint nil ) )+ ) 
+( column_name ( type_name / nil ) ( nil ( nil column_constraint nil ) )+ )
 
 type_name =
-( ( name nil )+ ( nil / ( lparen signed_number rparen ) / ( lparen signed_number comma signed_number rparen ) ) ) 
+( ( name nil )+ ( nil / ( lparen signed_number rparen ) / ( lparen signed_number comma signed_number rparen ) ) )
 
 column_constraint =
-( ( CONSTRAINT name )? ( ( PRIMARY KEY ( nil / ASC / DESC ) conflict_clause ( AUTOINCREMENT )? ) / ( NOT NULL conflict_clause ) / ( UNIQUE conflict_clause ) / ( CHECK lparen expr rparen ) / ( DEFAULT ( signed_number / literal_value / ( lparen expr rparen ) ) ) / ( COLLATE collation_name ) / foreign_key_clause ) ) 
+( ( CONSTRAINT name )? ( ( PRIMARY KEY ( nil / ASC / DESC ) conflict_clause ( AUTOINCREMENT )? ) / ( NOT NULL conflict_clause ) / ( UNIQUE conflict_clause ) / ( CHECK lparen expr rparen ) / ( DEFAULT ( signed_number / literal_value / ( lparen expr rparen ) ) ) / ( COLLATE collation_name ) / foreign_key_clause ) )
 
 signed_number =
-( ( nil / plus / minus ) numeric_literal ) 
+( ( nil / plus / minus ) numeric_literal )
 
 table_constraint =
-( ( CONSTRAINT name )? ( ( ( ( PRIMARY KEY ) / UNIQUE ) lparen ( indexed_column comma )+ rparen conflict_clause ) / ( CHECK lparen expr rparen ) / ( FOREIGN KEY lparen ( column_name comma )+ rparen foreign_key_clause ) ) ) 
+( ( CONSTRAINT name )? ( ( ( ( PRIMARY KEY ) / UNIQUE ) lparen ( indexed_column comma )+ rparen conflict_clause ) / ( CHECK lparen expr rparen ) / ( FOREIGN KEY lparen ( column_name comma )+ rparen foreign_key_clause ) ) )
 
 foreign_key_clause =
-( ( REFERENCES foreign_table ( lparen ( column_name comma )+ rparen )? ) ( ( ( ( ON ( DELETE / UPDATE ) ( ( SET NULL ) / ( SET DEFAULT ) / CASCADE / RESTRICT / ( NO ACTION ) ) ) / ( MATCH name ) ) nil )+ )? ( ( ( NOT )? DEFERRABLE ( ( INITIALLY DEFERRED ) / ( INITIALLY IMMEDIATE ) / nil ) ) nil )? ) 
+( ( REFERENCES foreign_table ( lparen ( column_name comma )+ rparen )? ) ( ( ( ( ON ( DELETE / UPDATE ) ( ( SET NULL ) / ( SET DEFAULT ) / CASCADE / RESTRICT / ( NO ACTION ) ) ) / ( MATCH name ) ) nil )+ )? ( ( ( NOT )? DEFERRABLE ( ( INITIALLY DEFERRED ) / ( INITIALLY IMMEDIATE ) / nil ) ) nil )? )
 
 conflict_clause =
-( ( ON CONFLICT ( ROLLBACK / ABORT / FAIL / IGNORE / REPLACE ) ) )? 
+( ( ON CONFLICT ( ROLLBACK / ABORT / FAIL / IGNORE / REPLACE ) ) )?
 
 create_trigger_stmt =
-( ( CREATE ( nil / TEMP / TEMPORARY ) TRIGGER ( IF NOT EXISTS )? ) ( ( database_name dot )? trigger_name ( BEFORE / AFTER / ( INSTEAD OF ) / nil ) ) ( ( DELETE / INSERT / ( UPDATE ( OF ( column_name comma )+ )? ) ) ON table_name ) ( ( FOR EACH ROW )? ( WHEN expr )? ) ( BEGIN ( ( ( update_stmt / insert_stmt / delete_stmt / select_stmt ) semicolon ) nil )+ END ) ) 
+( ( CREATE ( nil / TEMP / TEMPORARY ) TRIGGER ( IF NOT EXISTS )? ) ( ( database_name dot )? trigger_name ( BEFORE / AFTER / ( INSTEAD OF ) / nil ) ) ( ( DELETE / INSERT / ( UPDATE ( OF ( column_name comma )+ )? ) ) ON table_name ) ( ( FOR EACH ROW )? ( WHEN expr )? ) ( BEGIN ( ( ( update_stmt / insert_stmt / delete_stmt / select_stmt ) semicolon ) nil )+ END ) )
 
 create_view_stmt =
-( ( CREATE ( nil / TEMP / TEMPORARY ) VIEW ( IF NOT EXISTS )? ) ( ( database_name dot )? view_name AS select_stmt ) ) 
+( ( CREATE ( nil / TEMP / TEMPORARY ) VIEW ( IF NOT EXISTS )? ) ( ( database_name dot )? view_name AS select_stmt ) )
 
 create_virtual_table_stmt =
-( ( CREATE VIRTUAL TABLE ( database_name dot )? table_name ) ( USING module_name ( lparen ( module_argument comma )+ rparen )? ) ) 
+( ( CREATE VIRTUAL TABLE ( database_name dot )? table_name ) ( USING module_name ( lparen ( module_argument comma )+ rparen )? ) )
 
 delete_stmt =
-( DELETE FROM qualified_table_name ( WHERE expr )? ) 
+( DELETE FROM qualified_table_name ( WHERE expr )? )
 
 delete_stmt_limited =
-( ( DELETE FROM qualified_table_name ( WHERE expr )? ) ( ( ( ORDER BY ( ordering_term comma )+ )? ( LIMIT expr ( ( OFFSET / comma ) expr )? ) ) )? ) 
+( ( DELETE FROM qualified_table_name ( WHERE expr )? ) ( ( ( ORDER BY ( ordering_term comma )+ )? ( LIMIT expr ( ( OFFSET / comma ) expr )? ) ) )? )
 
 detach_stmt =
-( DETACH ( DATABASE )? database_name ) 
+( DETACH ( DATABASE )? database_name )
 
 drop_index_stmt =
-( DROP INDEX ( IF EXISTS )? ( database_name dot )? index_name ) 
+( DROP INDEX ( IF EXISTS )? ( database_name dot )? index_name )
 
 drop_table_stmt =
-( DROP TABLE ( IF EXISTS )? ( database_name dot )? table_name ) 
+( DROP TABLE ( IF EXISTS )? ( database_name dot )? table_name )
 
 drop_trigger_stmt =
-( DROP TRIGGER ( IF EXISTS )? ( database_name dot )? trigger_name ) 
+( DROP TRIGGER ( IF EXISTS )? ( database_name dot )? trigger_name )
 
 drop_view_stmt =
-( DROP VIEW ( IF EXISTS )? ( database_name dot )? view_name ) 
+( DROP VIEW ( IF EXISTS )? ( database_name dot )? view_name )
 
 expr =
-( literal_value / bind_parameter / ( ( ( database_name dot )? table_name dot )? column_name ) / ( unary_operator expr ) / ( expr binary_operator expr ) / ( function_name lparen ( ( ( DISTINCT )? ( expr comma )+ ) / nil / star ) rparen ) / ( lparen expr rparen ) / ( CAST lparen expr AS type_name rparen ) / ( expr COLLATE collation_name ) / ( expr ( NOT )? ( LIKE / GLOB / REGEXP / MATCH ) expr ( ESCAPE expr )? ) / ( expr ( ISNULL / NOTNULL / ( NOT NULL ) ) ) / ( expr IS ( NOT )? expr ) / ( expr ( NOT )? BETWEEN expr AND expr ) / ( expr ( NOT )? IN ( ( lparen ( nil / select_stmt / ( expr comma )+ ) rparen ) / ( ( database_name dot )? table_name ) ) ) / ( ( ( NOT )? EXISTS )? lparen select_stmt rparen ) / ( CASE ( expr )? ( ( WHEN expr THEN expr ) nil )+ ( ELSE expr )? END ) / raise_function ) 
+( literal_value / bind_parameter / ( ( ( database_name dot )? table_name dot )? column_name ) / ( unary_operator expr ) / ( expr binary_operator expr ) / ( function_name lparen ( ( ( DISTINCT )? ( expr comma )+ ) / nil / star ) rparen ) / ( lparen expr rparen ) / ( CAST lparen expr AS type_name rparen ) / ( expr COLLATE collation_name ) / ( expr ( NOT )? ( LIKE / GLOB / REGEXP / MATCH ) expr ( ESCAPE expr )? ) / ( expr ( ISNULL / NOTNULL / ( NOT NULL ) ) ) / ( expr IS ( NOT )? expr ) / ( expr ( NOT )? BETWEEN expr AND expr ) / ( expr ( NOT )? IN ( ( lparen ( nil / select_stmt / ( expr comma )+ ) rparen ) / ( ( database_name dot )? table_name ) ) ) / ( ( ( NOT )? EXISTS )? lparen select_stmt rparen ) / ( CASE ( expr )? ( ( WHEN expr THEN expr ) nil )+ ( ELSE expr )? END ) / raise_function )
 
 raise_function =
-( RAISE lparen ( IGNORE / ( ( ROLLBACK / ABORT / FAIL ) comma error_message ) ) rparen ) 
+( RAISE lparen ( IGNORE / ( ( ROLLBACK / ABORT / FAIL ) comma error_message ) ) rparen )
 
 literal_value =
-( numeric_literal / string_literal / blob_literal / NULL / CURRENT_TIME / CURRENT_DATE / CURRENT_TIMESTAMP ) 
+( numeric_literal / string_literal / blob_literal / NULL / CURRENT_TIME / CURRENT_DATE / CURRENT_TIMESTAMP )
 
 numeric_literal =
-( ( ( ( digit nil )+ ( decimal_point ( nil digit )+ )? ) / ( decimal_point ( digit nil )+ ) ) ( E ( nil / plus / minus ) ( digit nil )+ )? ) 
+( ( ( ( digit nil )+ ( decimal_point ( nil digit )+ )? ) / ( decimal_point ( digit nil )+ ) ) ( E ( nil / plus / minus ) ( digit nil )+ )? )
 
 insert_stmt =
-( ( ( ( INSERT ( OR ( ROLLBACK / ABORT / REPLACE / FAIL / IGNORE ) )? ) / REPLACE ) INTO ( database_name dot )? table_name ) ( ( lparen ( column_name comma )+ rparen )? ( VALUES lparen ( expr comma )+ rparen ) select_stmt ) ( DEFAULT VALUES ) ) 
+( ( ( ( INSERT ( OR ( ROLLBACK / ABORT / REPLACE / FAIL / IGNORE ) )? ) / REPLACE ) INTO ( database_name dot )? table_name ) ( ( lparen ( column_name comma )+ rparen )? ( VALUES lparen ( expr comma )+ rparen ) select_stmt ) ( DEFAULT VALUES ) )
 
 pragma_stmt =
-( PRAGMA ( database_name dot )? pragma_name ( nil / ( equal pragma_value ) / ( lparen pragma_value rparen ) ) ) 
+( PRAGMA ( database_name dot )? pragma_name ( nil / ( equal pragma_value ) / ( lparen pragma_value rparen ) ) )
 
 pragma_value =
-( signed_number / name / string_literal ) 
+( signed_number / name / string_literal )
 
 reindex_stmt =
-( REINDEX nil collation_name ( ( database_name dot )? table_name index_name ) ) 
+( REINDEX nil collation_name ( ( database_name dot )? table_name index_name ) )
 
 select_stmt =
-( ( ( select_core nil ) ( nil compound_operator nil ) )+ ( ORDER BY ( ordering_term comma )+ )? ( LIMIT expr ( ( OFFSET / comma ) expr )? )? ) 
+( ( ( select_core nil ) ( nil compound_operator nil ) )+ ( ORDER BY ( ordering_term comma )+ )? ( LIMIT expr ( ( OFFSET / comma ) expr )? )? )
 
 select_core =
-( ( SELECT ( nil / DISTINCT / ALL ) ( result_column comma )+ ) ( FROM join_source )? ( WHERE expr )? ( GROUP BY ( ordering_term comma )+ ( HAVING expr )? )? ) 
+( ( SELECT ( nil / DISTINCT / ALL ) ( result_column comma )+ ) ( FROM join_source )? ( WHERE expr )? ( GROUP BY ( ordering_term comma )+ ( HAVING expr )? )? )
 
 result_column =
-( star / ( table_name dot star ) / ( expr ( ( AS )? column_alias )? ) ) 
+( star / ( table_name dot star ) / ( expr ( ( AS )? column_alias )? ) )
 
 join_source =
-( single_source ( ( ( nil join_op single_source join_constraint nil ) nil )+ )? ) 
+( single_source ( ( ( nil join_op single_source join_constraint nil ) nil )+ )? )
 
 single_source =
-( ( ( database_name dot )? table_name ( ( AS )? table_alias )? ( nil / ( INDEXED BY index_name ) / ( NOT INDEXED ) ) ) / ( lparen select_stmt rparen ( ( AS )? table_alias )? ) / ( lparen join_source rparen ) ) 
+( ( ( database_name dot )? table_name ( ( AS )? table_alias )? ( nil / ( INDEXED BY index_name ) / ( NOT INDEXED ) ) ) / ( lparen select_stmt rparen ( ( AS )? table_alias )? ) / ( lparen join_source rparen ) )
 
 join_op =
-( comma / ( ( NATURAL )? ( nil / ( LEFT ( OUTER / nil ) ) / INNER / CROSS ) JOIN ) ) 
+( comma / ( ( NATURAL )? ( nil / ( LEFT ( OUTER / nil ) ) / INNER / CROSS ) JOIN ) )
 
 join_constraint =
-( ( ON expr ) / ( USING lparen ( column_name comma )+ rparen ) / nil ) 
+( ( ON expr ) / ( USING lparen ( column_name comma )+ rparen ) / nil )
 
 ordering_term =
-( expr ( COLLATE collation_name )? ( nil / ASC / DESC ) ) 
+( expr ( COLLATE collation_name )? ( nil / ASC / DESC ) )
 
 compound_operator =
-( ( UNION ( ALL )? ) / INTERSECT / EXCEPT ) 
+( ( UNION ( ALL )? ) / INTERSECT / EXCEPT )
 
 update_stmt =
-( ( UPDATE ( OR ( ROLLBACK / ABORT / REPLACE / FAIL / IGNORE ) )? qualified_table_name ) ( SET ( ( column_name equal expr ) comma )+ ( WHERE expr )? ) ) 
+( ( UPDATE ( OR ( ROLLBACK / ABORT / REPLACE / FAIL / IGNORE ) )? qualified_table_name ) ( SET ( ( column_name equal expr ) comma )+ ( WHERE expr )? ) )
 
 update_stmt_limited =
-( ( UPDATE ( OR ( ROLLBACK / ABORT / REPLACE / FAIL / IGNORE ) )? qualified_table_name ) ( SET ( ( column_name equal expr ) comma )+ ( WHERE expr )? ) ( ( ( ORDER BY ( ordering_term comma )+ )? ( LIMIT expr ( ( OFFSET / comma ) expr )? ) ) )? ) 
+( ( UPDATE ( OR ( ROLLBACK / ABORT / REPLACE / FAIL / IGNORE ) )? qualified_table_name ) ( SET ( ( column_name equal expr ) comma )+ ( WHERE expr )? ) ( ( ( ORDER BY ( ordering_term comma )+ )? ( LIMIT expr ( ( OFFSET / comma ) expr )? ) ) )? )
 
 qualified_table_name =
-( ( database_name dot )? table_name ( nil / ( INDEXED BY index_name ) / ( NOT INDEXED ) ) ) 
+( ( database_name dot )? table_name ( nil / ( INDEXED BY index_name ) / ( NOT INDEXED ) ) )
 
 vacuum_stmt =
-VACUUM 
+VACUUM
 
 comment_syntax =
-( ( minusminus ( nil anything_except_newline )+ ( newline / end_of_input ) ) / ( comment_beg ( nil anything_except_comment_end )+ ( comment_end / end_of_input ) ) ) 
+( ( minusminus ( nil anything_except_newline )+ ( newline / end_of_input ) ) / ( comment_beg ( nil anything_except_comment_end )+ ( comment_end / end_of_input ) ) )
 
 dot = '.'
 comma = ','
