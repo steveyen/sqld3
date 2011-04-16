@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+grammar = ARGV[0]
+
 $keywords = {}
 
 def rule(name, *rest)
@@ -52,8 +54,6 @@ print "// generated pegjs\n"
 print "\n"
 print "start = sql_stmt_list\n"
 print "\n"
-
-grammar = ARGV[0]
 
 load grammar
 
