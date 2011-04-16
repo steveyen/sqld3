@@ -1,16 +1,23 @@
 #!/usr/bin/env ruby
 
-grammar = ARGV[0]
-
+$grammar  = ARGV[0]
+$grammarx = ARGV[1] || 'bubble-to-pegjs_ex.rb'
 $keywords = {}
+$override = {}
+
+# ----------------------------------------
 
 def rule(name, *rest)
   print "#{name} =\n"
-  rest.flatten.each do |x|
-    $keywords[x] = true if x.class == String and x.match(/^[A-Z]+$/)
-    print "#{x} "
+  if $override[name]
+    print "#{$override[name]}\n"
+  else
+    rest.flatten.each do |x|
+      $keywords[x] = true if x.class == String and x.match(/^[A-Z]+$/)
+      print "#{x} "
+    end
+    print "\n\n"
   end
-  print "\n\n"
 end
 
 def either(*rest)
@@ -50,16 +57,15 @@ end
 
 # ----------------------------------------
 
-print "// generated pegjs\n"
-print "\n"
-print "start = sql_stmt_list\n"
-print "\n"
+$header = <<-EOS
+// generated pegjs, from #{$grammar} and #{$grammarx}
 
-load grammar
+start = sql_stmt_list
+EOS
 
 # ----------------------------------------
 
-extra = <<-CODE
+$extra = <<-EOS
 dot = '.'
 comma = ','
 semicolon = ';'
@@ -125,9 +131,17 @@ CURRENT_TIMESTAMP = 'now'
 blob_literal = string_literal
 
 end_of_input = ''
-CODE
+EOS
 
-print "#{extra}\n"
+# ----------------------------------------
+
+load $grammarx
+
+print "#{$header}\n"
+
+load $grammar
+
+print "#{$extra}\n"
 
 $keywords.keys.sort.each do |keyword|
   print "#{keyword} = whitespace \"#{keyword}\"\n"
