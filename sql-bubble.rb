@@ -8,6 +8,7 @@ lines = File.open(bubble, "r").readlines
 lines = lines.reject {|x| x.match(/^\s*\#/)} # Comments.
 lines = lines.reject {|x| x.match(/^\s*$/)}  # Whitespace.
 lines = lines.map {|x| x.gsub(/^set all_graphs/, 'root')}
+lines = lines.map {|x| x.gsub(/\{\}/, 'nil')}
 lines = lines.map {|x| x.gsub(/\./, 'dot')}
 lines = lines.map {|x| x.gsub(/\=/, 'equal')}
 lines = lines.map {|x| x.gsub(/\-\-/, 'minusminus')}
@@ -28,9 +29,11 @@ lines = lines.map {|x| x.gsub(/\//, '')}
 c = lines.join("")
 
 if true
+  c = c.gsub(/\(\s*toploop ?/, "toploop(")
   c = c.gsub(/\(\s*tailbranch ?/, "tailbranch(")
   c = c.gsub(/\(\s*opt(x?) ?/, "opt\\1( ")
   c = c.gsub(/\(\s*or ?/, "or( ")
+  c = c.gsub(/\(\s*and ?/, "and( ")
   c = c.gsub(/\(\s*line ?/, "line( ")
   c = c.gsub(/\(\s*loop ?/, "loop( ")
   c = c.gsub(/\(\s*stack ?/, "stack(")
