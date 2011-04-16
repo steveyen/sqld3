@@ -34,7 +34,7 @@ def toploop(*rest)
   return loop(*rest)
 end
 
-def tailbranch(*rest)
+def tailbranch(*rest) # TODO.
   return rest
 end
 
@@ -74,10 +74,11 @@ anything_except_newline = [^\\n]*
 comment_beg = '/*'
 comment_end = '*/'
 anything_except_comment_end = .* & '*/'
-whitespace = [\\s]*
 string_literal = '\"' (escape_char / [^"])* '\"'
 escape_char = '\\\\' .
 nil = ''
+
+whitespace = [\\s]*
 
 unary_operator = '-' / '+' / '~' / 'NOT'
 binary_operator =
