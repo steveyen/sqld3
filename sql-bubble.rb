@@ -25,6 +25,9 @@ lines = lines.map {|x| x.gsub(/\)/, 'rparen')}
 lines = lines.map {|x| x.gsub(/\{/, '(')}
 lines = lines.map {|x| x.gsub(/\}/, ')')}
 lines = lines.map {|x| x.gsub(/\//, '')}
+lines = lines.map {|x| x.gsub(/([A-Z][A-Z_]+)/, '"\\1"')}
+lines = lines.map {|x| x.gsub(/^  ([a-z_]+)/, '  rule("\\1"')}
+lines = lines.map {|x| x.gsub(/^  \)/, '  ))')}
 
 c = lines.join("")
 
@@ -37,6 +40,10 @@ if true
   c = c.gsub(/\(\s*line ?/, "line( ")
   c = c.gsub(/\(\s*loop ?/, "loop( ")
   c = c.gsub(/\(\s*stack ?/, "stack(")
+  c = c.gsub(/\" /, "\", ")
+  c = c.gsub(/([a-z]) /, "\\1, ")
+  c = c.gsub(/\)/, "),\\1")
+  c = c.gsub(/,(\s*)\)/, "\\1)")
 end
 
 print c
