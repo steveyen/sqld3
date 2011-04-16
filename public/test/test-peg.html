@@ -1,0 +1,71 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<script type="text/javascript" src="/js/peg-0.6.1.min.js"></script>
+<script type="text/javascript" src="/js/qunit/qunit.js"></script>
+<link rel="stylesheet" type="text/css" href="/js/qunit/qunit.css" media="screen">
+</head>
+<body>
+<script type="text/pegjs" id="calc_pegjs">
+start
+  = additive
+
+additive
+  = left:multiplicative "+" right:additive { return left + right; }
+  / multiplicative
+
+multiplicative
+  = left:primary "*" right:multiplicative { return left * right; }
+  / primary
+
+primary
+  = integer
+  / "(" additive:additive ")" { return additive; }
+
+integer "integer"
+  = digits:[0-9]+ { return parseInt(digits.join(""), 10); }
+</script>
+<script>
+module("PEG", {
+  setup: function() {
+    ok(PEG);
+  }
+});
+
+test("basics", 6, function() {
+  var parser = PEG.buildParser("start = ('a' / 'b')+");
+  ok(parser);
+  deepEqual(parser.parse("a"), ["a"]);
+  deepEqual(parser.parse("abba"), ["a", "b", "b", "a"]);
+  raises(function() {
+    parser.parse("abbd");
+  });
+  raises(function() {
+    parser.parse("");
+  });
+});
+
+test("calc", 7, function() {
+  calc_pegjs = document.getElementById("calc_pegjs").innerHTML;
+  ok(calc_pegjs);
+  var parser = PEG.buildParser(calc_pegjs);
+  ok(parser);
+  equal(parser.parse("2"), 2);
+  equal(parser.parse("2*(3+4)"), 14);
+  equal(parser.parse("2*((9+4))"), 26);
+  raises(function() {
+    parser.parse(" 2 ");
+  });
+});
+</script>
+
+<div>
+  <h1 id="qunit-header">Test Suite</h1>
+  <h2 id="qunit-banner"></h2>
+  <div id="qunit-testrunner-toolbar"></div>
+  <h2 id="qunit-userAgent"></h2>
+  <ol id="qunit-tests"></ol>
+  <div id="qunit-fixture">test markup</div>
+</div>
+</body>
+</html>
