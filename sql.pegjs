@@ -244,7 +244,7 @@ result_column =
       / ( ( table_name dot )? star ) ) )
 
 join_source =
-  ( single_source ( ( join_op single_source join_constraint )+ )? )
+  ( single_source ( join_op single_source join_constraint )* )
 
 single_source =
   ( whitespace
@@ -263,14 +263,18 @@ single_source =
     ) )
 
 join_op =
-  ( whitespace
-    ( comma
-    / ( NATURAL ?
-        ( ( LEFT ( OUTER ) ? ) / INNER / CROSS )? JOIN ) ) )
+  ( ( ( NATURAL ?
+        ( ( LEFT ( OUTER )? )
+          / INNER
+          / CROSS )?
+        JOIN )
+    / ( whitespace comma ) ) )
 
 join_constraint =
   ( ( ( ON expr )
-    / ( USING lparen ( column_name comma )+ rparen ) )? )
+    / ( USING whitespace lparen
+              ( whitespace column_name ( whitespace comma whitespace column_name )* )
+              whitespace rparen ) )? )
 
 ordering_term =
   ( whitespace
