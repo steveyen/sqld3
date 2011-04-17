@@ -162,7 +162,7 @@ value =
     value: (
       literal_value
     / bind_parameter
-    / ( ( ( database_name dot )? table_name dot )? column_name )
+    / column_ref
     / ( unary_operator expr )
     / ( function_name lparen ( ( DISTINCT ? ( expr comma )+ ) / star )? rparen )
     / ( lparen expr rparen )
@@ -235,11 +235,13 @@ select_core =
              where: w,
              group_by: g } }
 
+column_ref =
+  ( ( ( database_name dot )? table_name dot )? column_name )
+
 result_column =
   ( whitespace
-    ( star
-      / ( table_name dot star )
-      / ( expr ( AS ? column_alias )? ) ) )
+    ( ( column_ref ( ( AS )? column_alias )? )
+      / ( ( table_name dot )? star ) ) )
 
 join_source =
   ( single_source ( ( join_op single_source join_constraint )+ )? )
