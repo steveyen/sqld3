@@ -156,7 +156,8 @@ drop_view_stmt =
 
 value =
   ( whitespace
-    ( literal_value
+    value: (
+      literal_value
     / bind_parameter
     / ( ( ( database_name dot )? table_name dot )? column_name )
     / ( unary_operator expr )
@@ -166,6 +167,7 @@ value =
     / ( ( NOT ? EXISTS )? lparen select_stmt rparen )
     / ( CASE expr ? ( WHEN expr THEN expr )+ ( ELSE expr )? END )
     / raise_function ) )
+  { return { value: value } }
 
 expr =
   ( whitespace
@@ -211,11 +213,16 @@ select_stmt =
              limit: limit } }
 
 select_core =
-  ( SELECT ( DISTINCT / ALL )?
-           ( result_column ( whitespace comma result_column )* )
-    ( FROM join_source )?
-    ( WHERE expr )?
-    ( GROUP BY ( ordering_term comma )+ ( HAVING expr )? )? )
+  ( SELECT d: ( ( DISTINCT / ALL )? )
+           c: ( result_column ( whitespace comma result_column )* )
+    f: ( ( FROM join_source )? )
+    w: ( ( WHERE expr )? )
+    g: ( GROUP BY ( ordering_term comma )+ ( HAVING expr )? )? )
+  { return { distinct: flatstr(d),
+             columns: c,
+             from: f,
+             where: w,
+             group_by: g } }
 
 result_column =
   ( whitespace
