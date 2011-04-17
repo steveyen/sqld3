@@ -113,10 +113,10 @@ create_virtual_table_stmt =
 ( ( CREATE VIRTUAL TABLE ( database_name dot )? table_name ) ( USING module_name ( lparen ( module_argument comma )+ rparen )? ) )
 
 delete_stmt =
-  DELETE FROM qualified_table_name ( WHERE whitespace expr )?
+  DELETE FROM qualified_table_name ( WHERE expr )?
 
 delete_stmt_limited =
-  DELETE FROM qualified_table_name ( WHERE whitespace expr )?
+  DELETE FROM qualified_table_name ( WHERE expr )?
   ( ( ( ORDER BY ( ordering_term comma )+ )? ( LIMIT expr ( ( OFFSET / comma ) expr )? ) ) )?
 
 detach_stmt =
@@ -190,7 +190,7 @@ select_core =
   SELECT ( DISTINCT / ALL )?
          ( result_column ( whitespace comma result_column )* )
   ( FROM join_source )?
-  ( WHERE whitespace expr )?
+  ( WHERE expr )?
   ( GROUP BY ( ordering_term comma )+ ( HAVING expr )? )?
 
 result_column =
@@ -231,11 +231,11 @@ compound_operator =
 
 update_stmt =
   ( UPDATE ( OR ( ROLLBACK / ABORT / REPLACE / FAIL / IGNORE ) )? qualified_table_name )
-  ( SET ( ( column_name equal expr ) comma )+ ( WHERE whitespace expr )? )
+  ( SET ( ( column_name equal expr ) comma )+ ( WHERE expr )? )
 
 update_stmt_limited =
   ( UPDATE ( OR ( ROLLBACK / ABORT / REPLACE / FAIL / IGNORE ) )? qualified_table_name )
-  ( SET ( ( column_name equal expr ) comma )+ ( WHERE whitespace expr )? )
+  ( SET ( ( column_name equal expr ) comma )+ ( WHERE expr )? )
   ( ( ( ORDER BY ( ordering_term comma )+ )? ( LIMIT expr ( ( OFFSET / comma ) expr )? ) ) )?
 
 qualified_table_name =
