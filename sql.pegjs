@@ -134,7 +134,8 @@ drop_trigger_stmt =
 drop_view_stmt =
 ( DROP VIEW ( IF EXISTS )? ( database_name dot )? view_name )
 
-expr =
+value =
+  whitespace
   ( literal_value
   / bind_parameter
   / ( ( ( database_name dot )? table_name dot )? column_name )
@@ -142,19 +143,21 @@ expr =
   / ( function_name lparen ( ( DISTINCT ? ( expr comma )+ ) / star )? rparen )
   / ( lparen expr rparen )
   / ( CAST lparen expr AS type_name rparen )
-/*
-  / ( expr binary_operator expr )
-  / ( expr COLLATE collation_name )
-  / ( expr NOT ? ( LIKE / GLOB / REGEXP / MATCH ) expr ( ESCAPE expr )? )
-  / ( expr ( ISNULL / NOTNULL / ( NOT NULL ) ) )
-  / ( expr IS NOT ? expr )
-  / ( expr NOT ? BETWEEN expr AND expr )
-  / ( expr NOT ? IN ( ( lparen ( select_stmt / ( expr comma )+ )? rparen )
-                         / ( ( database_name dot )? table_name ) ) )
-*/
   / ( ( NOT ? EXISTS )? lparen select_stmt rparen )
   / ( CASE expr ? ( WHEN expr THEN expr )+ ( ELSE expr )? END )
   / raise_function )
+
+expr =
+  whitespace
+  ( value
+  / ( value binary_operator expr )
+  / ( value COLLATE collation_name )
+  / ( value NOT ? ( LIKE / GLOB / REGEXP / MATCH ) expr ( ESCAPE expr )? )
+  / ( value ( ISNULL / NOTNULL / ( NOT NULL ) ) )
+  / ( value IS NOT ? expr )
+  / ( value NOT ? BETWEEN expr AND expr )
+  / ( value NOT ? IN ( ( lparen ( select_stmt / ( expr comma )+ )? rparen )
+                     / ( ( database_name dot )? table_name ) ) ) )
 
 raise_function =
 ( RAISE lparen ( IGNORE / ( ( ROLLBACK / ABORT / FAIL ) comma error_message ) ) rparen )
@@ -268,17 +271,21 @@ whitespace =
 whitespace1 =
   [ \t\n\r]+
 
-unary_operator = '-' / '+' / '~' / 'NOT'
+unary_operator =
+  whitespace
+  ( '-' / '+' / '~' / 'NOT')
+
 binary_operator =
-  '||'
-  / '*' / '/' / '%'
-  / '+' / '-'
-  / '<<' / '>>' / '&' / '|'
-  / '<' / '<=' / '>' / '>='
-  / '=' / '==' / '!=' / '<>'
-  / 'IS' / 'IS NOT' / 'IN' / 'LIKE' / 'GLOB' / 'MATCH' / 'REGEXP'
-  / 'AND'
-  / 'OR'
+  whitespace
+  ('||'
+   / '*' / '/' / '%'
+   / '+' / '-'
+   / '<<' / '>>' / '&' / '|'
+   / '<' / '<=' / '>' / '>='
+   / '=' / '==' / '!=' / '<>'
+   / 'IS' / 'IS NOT' / 'IN' / 'LIKE' / 'GLOB' / 'MATCH' / 'REGEXP'
+   / 'AND'
+   / 'OR')
 
 digit = [0-9]
 decimal_point = dot
