@@ -50,7 +50,9 @@ sql_stmt =
   { return { explain: flatstr(explain), stmt: stmt } }
 
 alter_table_stmt =
-( ( ALTER TABLE ( database_name dot )? table_name ) ( RENAME TO new_table_name ) ( ADD ( COLUMN )? column_def ) )
+  ( ( ALTER TABLE table_ref )
+    ( RENAME TO new_table_name )
+    ( ADD ( COLUMN )? column_def ) )
 
 analyze_stmt =
   ( ANALYZE ( database_name / table_or_index_name / ( database_name dot table_or_index_name ) )? )
@@ -81,7 +83,7 @@ indexed_column =
 
 create_table_stmt =
   ( CREATE ( TEMP / TEMPORARY )? TABLE ( IF NOT EXISTS )? )
-  ( ( database_name dot )? table_name
+  ( table_ref
     ( lparen ( column_def comma )+ ( comma table_constraint )+ rparen )
     ( AS select_stmt ) )
 
@@ -133,7 +135,8 @@ create_view_stmt =
     ( ( database_name dot )? view_name AS select_stmt ) )
 
 create_virtual_table_stmt =
-( ( CREATE VIRTUAL TABLE ( database_name dot )? table_name ) ( USING module_name ( lparen ( module_argument comma )+ rparen )? ) )
+  ( ( CREATE VIRTUAL TABLE table_ref )
+    ( USING module_name ( lparen ( module_argument comma )+ rparen )? ) )
 
 delete_stmt =
   ( DELETE FROM qualified_table_name ( WHERE expr )? )
@@ -149,7 +152,7 @@ drop_index_stmt =
 ( DROP INDEX ( IF EXISTS )? ( database_name dot )? index_name )
 
 drop_table_stmt =
-( DROP TABLE ( IF EXISTS )? ( database_name dot )? table_name )
+  ( DROP TABLE ( IF EXISTS )? table_ref )
 
 drop_trigger_stmt =
 ( DROP TRIGGER ( IF EXISTS )? ( database_name dot )? trigger_name )
@@ -181,7 +184,7 @@ expr =
     / ( value IS NOT ? expr )
     / ( value NOT ? BETWEEN expr AND expr )
     / ( value NOT ? IN ( ( lparen ( select_stmt / ( expr comma )+ )? rparen )
-                     / ( ( database_name dot )? table_name ) ) )
+                       / table_ref ) )
     / value ) )
 
 raise_function =
@@ -199,7 +202,7 @@ insert_stmt =
   ( ( ( INSERT ( OR ( ROLLBACK / ABORT / REPLACE / FAIL / IGNORE ) )? )
       / REPLACE )
     INTO
-    ( ( database_name dot )? table_name )
+    table_ref
     ( ( ( lparen ( column_name ( comma column_name )* ) rparen )?
         ( ( VALUES lparen ( expr comma )+ rparen )
           / select_stmt ) )
@@ -213,7 +216,7 @@ pragma_value =
 ( signed_number / name / string_literal )
 
 reindex_stmt =
-  ( REINDEX collation_name ( ( database_name dot )? table_name index_name ) )
+  ( REINDEX collation_name ( table_ref index_name ) )
 
 select_stmt =
   ( select_core: ( select_core (compound_operator select_core )* )
@@ -234,9 +237,6 @@ select_core =
              from: f,
              where: w,
              group_by: g } }
-
-column_ref =
-  ( ( ( database_name dot )? table_name dot )? column_name )
 
 result_column =
   ( whitespace
@@ -291,7 +291,13 @@ update_stmt_limited =
     ( ( ( ORDER BY ( ordering_term comma )+ )? ( LIMIT expr ( ( OFFSET / comma ) expr )? ) ) )? )
 
 qualified_table_name =
-  ( ( database_name dot )? table_name ( ( INDEXED BY index_name ) / ( NOT INDEXED ) )? )
+  ( table_ref ( ( INDEXED BY index_name ) / ( NOT INDEXED ) )? )
+
+table_ref =
+  ( ( database_name dot )? table_name )
+
+column_ref =
+  ( ( table_name dot )? column_name )
 
 vacuum_stmt =
 VACUUM
