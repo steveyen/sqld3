@@ -3,19 +3,22 @@
 // or with comments have manual edits.
 //
 {
-  function flatten(x, acc) {
+  function flatten(x, rejectSpace, acc) {
     acc = acc || [];
-    if (typeof(x) == "string") {
+    if ((x.length == undefined) || // Just an object, not a string or array.
+        (!rejectSpace ||
+         (typeof(x) != "string" ||
+          !x.match(/^\s*$/)))) {
       acc[acc.length] = x;
       return acc;
     }
-    for (var k in x) {
-      flatten(x[k], acc);
+    for (var i = 0; i < x.length; i++) {
+      flatten(x[i], rejectSpace, acc);
     }
     return acc;
   }
-  function flatstr(x, joinChar) {
-    return flatten(x, []).join(joinChar || '');
+  function flatstr(x, rejectSpace, joinChar) {
+    return flatten(x, rejectSpace, []).join(joinChar || '');
   }
 }
 
@@ -239,12 +242,12 @@ single_source =
         a: ( ( AS ? table_alias )? )
         i: ( ( ( INDEXED BY index_name )
               / ( NOT INDEXED ) )? ) )
-        { return { table: flatstr(t),
-                   alias: flatstr(a),
-                   index: flatstr(i) } }
+        { return { table: flatstr(t, true),
+                   alias: flatstr(a, true),
+                   index: flatstr(i, true) } }
       / ( lparen s: select_stmt rparen a: ( AS ? table_alias )? )
-        { return { select: flatstr(s),
-                   alias: flatstr(a) } }
+        { return { select: flatstr(s, true),
+                   alias: flatstr(a, true) } }
       / ( lparen j: join_source rparen )
         { return j }
     ) )
