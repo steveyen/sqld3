@@ -30,13 +30,13 @@ alter_table_stmt =
 ( ( ALTER TABLE ( database_name dot )? table_name ) ( RENAME TO new_table_name ) ( ADD ( COLUMN )? column_def ) )
 
 analyze_stmt =
-  ( ANALYZE ( database_name / table_or_index_name / ( database_name dot table_or_index_name ) )? )
+  ANALYZE ( database_name / table_or_index_name / ( database_name dot table_or_index_name ) )?
 
 attach_stmt =
-  ( ATTACH ( DATABASE )? expr AS database_name )
+  ATTACH ( DATABASE )? expr AS database_name
 
 begin_stmt =
-  ( BEGIN ( DEFERRED / IMMEDIATE / EXCLUSIVE )? ( TRANSACTION )? )
+  BEGIN ( DEFERRED / IMMEDIATE / EXCLUSIVE )? ( TRANSACTION )?
 
 commit_stmt =
 ( ( COMMIT / END ) ( TRANSACTION )? )
@@ -54,19 +54,19 @@ create_index_stmt =
 ( ( CREATE ( UNIQUE )? INDEX ( IF NOT EXISTS )? ) ( ( database_name dot )? index_name ON table_name lparen ( indexed_column comma )+ rparen ) )
 
 indexed_column =
-  ( column_name ( COLLATE collation_name )? ( ASC / DESC )? )
+  column_name ( COLLATE collation_name )? ( ASC / DESC )?
 
 create_table_stmt =
-  ( ( CREATE ( TEMP / TEMPORARY )? TABLE ( IF NOT EXISTS )? )
-    ( ( database_name dot )? table_name
-      ( lparen ( column_def comma )+ ( comma table_constraint )+ rparen )
-      ( AS select_stmt ) ) )
+  ( CREATE ( TEMP / TEMPORARY )? TABLE ( IF NOT EXISTS )? )
+  ( ( database_name dot )? table_name
+    ( lparen ( column_def comma )+ ( comma table_constraint )+ rparen )
+    ( AS select_stmt ) )
 
 column_def =
-  ( column_name ( type_name )? ( column_constraint )+ )
+  column_name ( type_name )? ( column_constraint )+
 
 type_name =
-  ( ( name )+ ( ( lparen signed_number rparen ) / ( lparen signed_number comma signed_number rparen ) )? )
+  ( name )+ ( ( lparen signed_number rparen ) / ( lparen signed_number comma signed_number rparen ) )?
 
 column_constraint =
   ( ( CONSTRAINT name )?
