@@ -188,14 +188,22 @@ raise_function =
 ( RAISE lparen ( IGNORE / ( ( ROLLBACK / ABORT / FAIL ) comma error_message ) ) rparen )
 
 literal_value =
-( numeric_literal / string_literal / blob_literal / NULL / CURRENT_TIME / CURRENT_DATE / CURRENT_TIMESTAMP )
+  ( numeric_literal / string_literal / blob_literal
+  / NULL / CURRENT_TIME / CURRENT_DATE / CURRENT_TIMESTAMP )
 
 numeric_literal =
   ( ( ( ( digit )+ ( decimal_point ( digit )+ )? )
       / ( decimal_point ( digit )+ ) ) ( E ( plus / minus )? ( digit )+ )? )
 
 insert_stmt =
-( ( ( ( INSERT ( OR ( ROLLBACK / ABORT / REPLACE / FAIL / IGNORE ) )? ) / REPLACE ) INTO ( database_name dot )? table_name ) ( ( lparen ( column_name comma )+ rparen )? ( VALUES lparen ( expr comma )+ rparen ) select_stmt ) ( DEFAULT VALUES ) )
+  ( ( ( INSERT ( OR ( ROLLBACK / ABORT / REPLACE / FAIL / IGNORE ) )? )
+      / REPLACE )
+    INTO
+    ( ( database_name dot )? table_name )
+    ( ( ( lparen ( column_name ( comma column_name )* ) rparen )?
+        ( ( VALUES lparen ( expr comma )+ rparen )
+          / select_stmt ) )
+      / ( DEFAULT VALUES ) ) )
 
 pragma_stmt =
   ( PRAGMA ( database_name dot )? pragma_name
