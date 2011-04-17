@@ -240,7 +240,7 @@ select_core =
 
 result_column =
   ( whitespace
-    ( ( column_ref ( ( AS )? column_alias )? )
+    ( ( column_ref ( ( AS )? whitespace column_alias )? )
       / ( ( table_name dot )? star ) ) )
 
 join_source =
