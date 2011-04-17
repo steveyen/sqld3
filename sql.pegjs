@@ -226,8 +226,8 @@ reindex_stmt =
   ( REINDEX collation_name ( table_ref index_name ) )
 
 select_stmt =
-  ( select_core: ( select_core (compound_operator select_core )* )
-    order_by: ( ( ORDER BY ordering_term (whitespace comma ordering_term)* )? )
+  ( select_core: ( select_core ( compound_operator select_core )* )
+    order_by: ( ( ORDER BY ordering_term ( whitespace comma ordering_term )* )? )
     limit: ( ( LIMIT expr ( ( OFFSET / comma ) expr )? )? ) )
   { return { select_core: select_core,
              order_by: order_by,
