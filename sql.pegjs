@@ -167,8 +167,8 @@ value =
     / bind_parameter
     / column_ref
     / ( unary_operator expr )
-    / ( function_name lparen ( ( DISTINCT ? ( expr comma )+ ) / star )? rparen )
-    / ( lparen expr rparen )
+    / call_function
+    / ( whitespace lparen expr whitespace rparen )
     / ( CAST lparen expr AS type_name rparen )
     / ( ( NOT ? EXISTS )? lparen select_stmt rparen )
     / ( CASE expr ? ( WHEN expr THEN expr )+ ( ELSE expr )? END )
@@ -186,6 +186,13 @@ expr =
     / ( value NOT ? IN ( ( lparen ( select_stmt / ( expr comma )+ )? rparen )
                        / table_ref ) )
     / value ) )
+
+call_function =
+  ( function_name
+    whitespace lparen
+               ( ( DISTINCT ? ( expr (whitespace comma expr)* )+ )
+               / whitespace star )?
+    whitespace rparen )
 
 raise_function =
 ( RAISE lparen ( IGNORE / ( ( ROLLBACK / ABORT / FAIL ) comma error_message ) ) rparen )
@@ -240,7 +247,9 @@ select_core =
 
 result_column =
   ( whitespace
-    ( ( column_ref ( ( AS )? whitespace column_alias )? )
+    ( ( ( call_function
+        / column_ref)
+        ( ( AS )? whitespace column_alias )? )
       / ( ( table_name dot )? star ) ) )
 
 join_source =
