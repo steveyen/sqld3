@@ -2,14 +2,31 @@
 // and manually edited for pegjs suitability.  Rules with indentation
 // or with comments have manual edits.
 //
+{
+  function flatten(x, acc) {
+    acc = acc || [];
+    if (typeof(x) == "string") {
+      acc[acc.length] = x;
+      return acc;
+    }
+    for (var k in x) {
+      flatten(x[k], acc);
+    }
+    return acc;
+  }
+  function flatstr(x, joinChar) {
+    return flatten(x, []).join(joinChar || '');
+  }
+}
+
 start = sql_stmt_list
 
 sql_stmt_list =
   ( whitespace ( sql_stmt )? whitespace semicolon )+
 
 sql_stmt =
-  ( ( EXPLAIN ( QUERY PLAN )? )?
-    (
+  ( explain: ( EXPLAIN ( QUERY PLAN )? )?
+    stmt: (
 //    alter_table_stmt
 //    / analyze_stmt
 //    / attach_stmt
@@ -27,6 +44,7 @@ sql_stmt =
       / update_stmt / update_stmt_limited
 //    / vacuum_stmt
     ) )
+  { return { explain: flatstr(explain), stmt: stmt } }
 
 alter_table_stmt =
 ( ( ALTER TABLE ( database_name dot )? table_name ) ( RENAME TO new_table_name ) ( ADD ( COLUMN )? column_def ) )
@@ -185,9 +203,12 @@ reindex_stmt =
   ( REINDEX collation_name ( ( database_name dot )? table_name index_name ) )
 
 select_stmt =
-  ( select_core (compound_operator select_core )*
-    ( ORDER BY ordering_term (whitespace comma ordering_term)* )?
-    ( LIMIT expr ( ( OFFSET / comma ) expr )? )? )
+  ( select_core: ( select_core (compound_operator select_core )* )
+    order_by: ( ( ORDER BY ordering_term (whitespace comma ordering_term)* )? )
+    limit: ( ( LIMIT expr ( ( OFFSET / comma ) expr )? )? ) )
+  { return { select_core: select_core,
+             order_by: order_by,
+             limit: limit } }
 
 select_core =
   ( SELECT ( DISTINCT / ALL )?
