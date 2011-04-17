@@ -5,39 +5,40 @@
 start = sql_stmt_list
 
 sql_stmt_list =
-  ( whitespace sql_stmt ? whitespace semicolon )+
+  ( whitespace ( sql_stmt )? whitespace semicolon )+
 
 sql_stmt =
-( ( EXPLAIN ( QUERY PLAN )? )? (
-//  alter_table_stmt
-//  / analyze_stmt
-//  / attach_stmt
-//  / begin_stmt / commit_stmt
-//  / create_index_stmt
-    create_table_stmt
-//  / create_trigger_stmt
-//  / create_view_stmt
-//  / create_virtual_table_stmt
-    / delete_stmt / delete_stmt_limited
-//  / detach_stmt / drop_index_stmt / drop_table_stmt / drop_trigger_stmt / drop_view_stmt
-    / insert_stmt
-//  / pragma_stmt / reindex_stmt / release_stmt / rollback_stmt / savepoint_stmt
-    / select_stmt
-    / update_stmt / update_stmt_limited
-//  / vacuum_stmt
-) )
+  ( ( EXPLAIN ( QUERY PLAN )? )?
+    (
+//    alter_table_stmt
+//    / analyze_stmt
+//    / attach_stmt
+//    / begin_stmt / commit_stmt
+//    / create_index_stmt
+      create_table_stmt
+//    / create_trigger_stmt
+//    / create_view_stmt
+//    / create_virtual_table_stmt
+      / delete_stmt / delete_stmt_limited
+//    / detach_stmt / drop_index_stmt / drop_table_stmt / drop_trigger_stmt / drop_view_stmt
+      / insert_stmt
+//    / pragma_stmt / reindex_stmt / release_stmt / rollback_stmt / savepoint_stmt
+      / select_stmt
+      / update_stmt / update_stmt_limited
+//    / vacuum_stmt
+    ) )
 
 alter_table_stmt =
 ( ( ALTER TABLE ( database_name dot )? table_name ) ( RENAME TO new_table_name ) ( ADD ( COLUMN )? column_def ) )
 
 analyze_stmt =
-  ANALYZE ( database_name / table_or_index_name / ( database_name dot table_or_index_name ) )?
+  ( ANALYZE ( database_name / table_or_index_name / ( database_name dot table_or_index_name ) )? )
 
 attach_stmt =
-  ATTACH ( DATABASE )? expr AS database_name
+  ( ATTACH ( DATABASE )? expr AS database_name )
 
 begin_stmt =
-  BEGIN ( DEFERRED / IMMEDIATE / EXCLUSIVE )? ( TRANSACTION )?
+  ( BEGIN ( DEFERRED / IMMEDIATE / EXCLUSIVE )? ( TRANSACTION )? )
 
 commit_stmt =
 ( ( COMMIT / END ) ( TRANSACTION )? )
@@ -55,7 +56,7 @@ create_index_stmt =
 ( ( CREATE ( UNIQUE )? INDEX ( IF NOT EXISTS )? ) ( ( database_name dot )? index_name ON table_name lparen ( indexed_column comma )+ rparen ) )
 
 indexed_column =
-  column_name ( COLLATE collation_name )? ( ASC / DESC )?
+  ( column_name ( COLLATE collation_name )? ( ASC / DESC )? )
 
 create_table_stmt =
   ( CREATE ( TEMP / TEMPORARY )? TABLE ( IF NOT EXISTS )? )
@@ -64,7 +65,7 @@ create_table_stmt =
     ( AS select_stmt ) )
 
 column_def =
-  column_name ( type_name )? ( column_constraint )+
+  ( column_name ( type_name )? ( column_constraint )+ )
 
 type_name =
   ( name )+ ( ( lparen signed_number rparen ) / ( lparen signed_number comma signed_number rparen ) )?
@@ -114,11 +115,11 @@ create_virtual_table_stmt =
 ( ( CREATE VIRTUAL TABLE ( database_name dot )? table_name ) ( USING module_name ( lparen ( module_argument comma )+ rparen )? ) )
 
 delete_stmt =
-  DELETE FROM qualified_table_name ( WHERE expr )?
+  ( DELETE FROM qualified_table_name ( WHERE expr )? )
 
 delete_stmt_limited =
-  DELETE FROM qualified_table_name ( WHERE expr )?
-  ( ( ( ORDER BY ( ordering_term comma )+ )? ( LIMIT expr ( ( OFFSET / comma ) expr )? ) ) )?
+  ( DELETE FROM qualified_table_name ( WHERE expr )?
+    ( ( ( ORDER BY ( ordering_term comma )+ )? ( LIMIT expr ( ( OFFSET / comma ) expr )? ) ) )? )
 
 detach_stmt =
 ( DETACH ( DATABASE )? database_name )
@@ -136,29 +137,29 @@ drop_view_stmt =
 ( DROP VIEW ( IF EXISTS )? ( database_name dot )? view_name )
 
 value =
-  whitespace
-  ( literal_value
-  / bind_parameter
-  / ( ( ( database_name dot )? table_name dot )? column_name )
-  / ( unary_operator expr )
-  / ( function_name lparen ( ( DISTINCT ? ( expr comma )+ ) / star )? rparen )
-  / ( lparen expr rparen )
-  / ( CAST lparen expr AS type_name rparen )
-  / ( ( NOT ? EXISTS )? lparen select_stmt rparen )
-  / ( CASE expr ? ( WHEN expr THEN expr )+ ( ELSE expr )? END )
-  / raise_function )
+  ( whitespace
+    ( literal_value
+    / bind_parameter
+    / ( ( ( database_name dot )? table_name dot )? column_name )
+    / ( unary_operator expr )
+    / ( function_name lparen ( ( DISTINCT ? ( expr comma )+ ) / star )? rparen )
+    / ( lparen expr rparen )
+    / ( CAST lparen expr AS type_name rparen )
+    / ( ( NOT ? EXISTS )? lparen select_stmt rparen )
+    / ( CASE expr ? ( WHEN expr THEN expr )+ ( ELSE expr )? END )
+    / raise_function ) )
 
 expr =
-  whitespace
-  ( ( value binary_operator expr )
-  / ( value COLLATE collation_name )
-  / ( value NOT ? ( LIKE / GLOB / REGEXP / MATCH ) expr ( ESCAPE expr )? )
-  / ( value ( ISNULL / NOTNULL / ( NOT NULL ) ) )
-  / ( value IS NOT ? expr )
-  / ( value NOT ? BETWEEN expr AND expr )
-  / ( value NOT ? IN ( ( lparen ( select_stmt / ( expr comma )+ )? rparen )
+  ( whitespace
+    ( ( value binary_operator expr )
+    / ( value COLLATE collation_name )
+    / ( value NOT ? ( LIKE / GLOB / REGEXP / MATCH ) expr ( ESCAPE expr )? )
+    / ( value ( ISNULL / NOTNULL / ( NOT NULL ) ) )
+    / ( value IS NOT ? expr )
+    / ( value NOT ? BETWEEN expr AND expr )
+    / ( value NOT ? IN ( ( lparen ( select_stmt / ( expr comma )+ )? rparen )
                      / ( ( database_name dot )? table_name ) ) )
-  / value )
+    / value ) )
 
 raise_function =
 ( RAISE lparen ( IGNORE / ( ( ROLLBACK / ABORT / FAIL ) comma error_message ) ) rparen )
@@ -174,7 +175,8 @@ insert_stmt =
 ( ( ( ( INSERT ( OR ( ROLLBACK / ABORT / REPLACE / FAIL / IGNORE ) )? ) / REPLACE ) INTO ( database_name dot )? table_name ) ( ( lparen ( column_name comma )+ rparen )? ( VALUES lparen ( expr comma )+ rparen ) select_stmt ) ( DEFAULT VALUES ) )
 
 pragma_stmt =
-  ( PRAGMA ( database_name dot )? pragma_name ( ( equal pragma_value ) / ( lparen pragma_value rparen ) )? )
+  ( PRAGMA ( database_name dot )? pragma_name
+    ( ( equal pragma_value ) / ( lparen pragma_value rparen ) )? )
 
 pragma_value =
 ( signed_number / name / string_literal )
@@ -183,47 +185,47 @@ reindex_stmt =
   ( REINDEX collation_name ( ( database_name dot )? table_name index_name ) )
 
 select_stmt =
-  select_core (compound_operator select_core )*
-  ( ORDER BY ordering_term (whitespace comma ordering_term)* )?
-  ( LIMIT expr ( ( OFFSET / comma ) expr )? )?
+  ( select_core (compound_operator select_core )*
+    ( ORDER BY ordering_term (whitespace comma ordering_term)* )?
+    ( LIMIT expr ( ( OFFSET / comma ) expr )? )? )
 
 select_core =
-  SELECT ( DISTINCT / ALL )?
-         ( result_column ( whitespace comma result_column )* )
-  ( FROM join_source )?
-  ( WHERE expr )?
-  ( GROUP BY ( ordering_term comma )+ ( HAVING expr )? )?
+  ( SELECT ( DISTINCT / ALL )?
+           ( result_column ( whitespace comma result_column )* )
+    ( FROM join_source )?
+    ( WHERE expr )?
+    ( GROUP BY ( ordering_term comma )+ ( HAVING expr )? )? )
 
 result_column =
-  whitespace
-  ( star
-    / ( table_name dot star )
-    / ( expr ( AS ? column_alias )? ) )
+  ( whitespace
+    ( star
+      / ( table_name dot star )
+      / ( expr ( AS ? column_alias )? ) ) )
 
 join_source =
-  single_source ( ( join_op single_source join_constraint )+ )?
+  ( single_source ( ( join_op single_source join_constraint )+ )? )
 
 single_source =
-  whitespace
-  ( ( ( database_name dot )? table_name ( AS ? table_alias )?
-      ( ( INDEXED BY index_name )
-        / ( NOT INDEXED ) )? )
-    / ( lparen select_stmt rparen ( AS ? table_alias )? )
-    / ( lparen join_source rparen ) )
+  ( whitespace
+    ( ( ( database_name dot )? table_name ( AS ? table_alias )?
+        ( ( INDEXED BY index_name )
+          / ( NOT INDEXED ) )? )
+      / ( lparen select_stmt rparen ( AS ? table_alias )? )
+      / ( lparen join_source rparen ) ) )
 
 join_op =
-  whitespace
-  ( comma
-  / ( NATURAL ?
-      ( ( LEFT ( OUTER ) ? ) / INNER / CROSS )? JOIN ) )
+  ( whitespace
+    ( comma
+    / ( NATURAL ?
+        ( ( LEFT ( OUTER ) ? ) / INNER / CROSS )? JOIN ) ) )
 
 join_constraint =
-  ( ( ON expr )
-  / ( USING lparen ( column_name comma )+ rparen ) )?
+  ( ( ( ON expr )
+    / ( USING lparen ( column_name comma )+ rparen ) )? )
 
 ordering_term =
-  whitespace
-  ( expr ( COLLATE collation_name )? ( ASC / DESC )? )
+  ( whitespace
+    ( expr ( COLLATE collation_name )? ( ASC / DESC )? ) )
 
 compound_operator =
   ( ( UNION ALL ? )
@@ -231,13 +233,13 @@ compound_operator =
   / EXCEPT )
 
 update_stmt =
-  ( UPDATE ( OR ( ROLLBACK / ABORT / REPLACE / FAIL / IGNORE ) )? qualified_table_name )
-  ( SET ( ( column_name equal expr ) comma )+ ( WHERE expr )? )
+  ( ( UPDATE ( OR ( ROLLBACK / ABORT / REPLACE / FAIL / IGNORE ) )? qualified_table_name )
+    ( SET ( ( column_name equal expr ) comma )+ ( WHERE expr )? ) )
 
 update_stmt_limited =
-  ( UPDATE ( OR ( ROLLBACK / ABORT / REPLACE / FAIL / IGNORE ) )? qualified_table_name )
-  ( SET ( ( column_name equal expr ) comma )+ ( WHERE expr )? )
-  ( ( ( ORDER BY ( ordering_term comma )+ )? ( LIMIT expr ( ( OFFSET / comma ) expr )? ) ) )?
+  ( ( UPDATE ( OR ( ROLLBACK / ABORT / REPLACE / FAIL / IGNORE ) )? qualified_table_name )
+    ( SET ( ( column_name equal expr ) comma )+ ( WHERE expr )? )
+    ( ( ( ORDER BY ( ordering_term comma )+ )? ( LIMIT expr ( ( OFFSET / comma ) expr )? ) ) )? )
 
 qualified_table_name =
   ( ( database_name dot )? table_name ( ( INDEXED BY index_name ) / ( NOT INDEXED ) )? )
@@ -273,21 +275,21 @@ whitespace1 =
   [ \t\n\r]+
 
 unary_operator =
-  whitespace
-  ( '-' / '+' / '~' / 'NOT')
+  ( whitespace
+    ( '-' / '+' / '~' / 'NOT') )
 
 binary_operator =
-  whitespace
-  ('||'
-   / '*' / '/' / '%'
-   / '+' / '-'
-   / '<<' / '>>' / '&' / '|'
-   / '<=' / '>='
-   / '<' / '>'
-   / '=' / '==' / '!=' / '<>'
-   / 'IS' / 'IS NOT' / 'IN' / 'LIKE' / 'GLOB' / 'MATCH' / 'REGEXP'
-   / 'AND'
-   / 'OR')
+  ( whitespace
+    ('||'
+     / '*' / '/' / '%'
+     / '+' / '-'
+     / '<<' / '>>' / '&' / '|'
+     / '<=' / '>='
+     / '<' / '>'
+     / '=' / '==' / '!=' / '<>'
+     / 'IS' / 'IS NOT' / 'IN' / 'LIKE' / 'GLOB' / 'MATCH' / 'REGEXP'
+     / 'AND'
+     / 'OR') )
 
 digit = [0-9]
 decimal_point = dot
