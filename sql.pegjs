@@ -149,15 +149,15 @@ value =
 
 expr =
   whitespace
-  ( value
-  / ( value binary_operator expr )
+  ( ( value binary_operator expr )
   / ( value COLLATE collation_name )
   / ( value NOT ? ( LIKE / GLOB / REGEXP / MATCH ) expr ( ESCAPE expr )? )
   / ( value ( ISNULL / NOTNULL / ( NOT NULL ) ) )
   / ( value IS NOT ? expr )
   / ( value NOT ? BETWEEN expr AND expr )
   / ( value NOT ? IN ( ( lparen ( select_stmt / ( expr comma )+ )? rparen )
-                     / ( ( database_name dot )? table_name ) ) ) )
+                     / ( ( database_name dot )? table_name ) ) )
+  / value )
 
 raise_function =
 ( RAISE lparen ( IGNORE / ( ( ROLLBACK / ABORT / FAIL ) comma error_message ) ) rparen )
@@ -281,7 +281,8 @@ binary_operator =
    / '*' / '/' / '%'
    / '+' / '-'
    / '<<' / '>>' / '&' / '|'
-   / '<' / '<=' / '>' / '>='
+   / '<=' / '>='
+   / '<' / '>'
    / '=' / '==' / '!=' / '<>'
    / 'IS' / 'IS NOT' / 'IN' / 'LIKE' / 'GLOB' / 'MATCH' / 'REGEXP'
    / 'AND'
