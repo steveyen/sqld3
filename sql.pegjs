@@ -4,7 +4,7 @@
 start = sql_stmt_list
 
 sql_stmt_list =
-( ( sql_stmt )? semicolon )+
+  ( whitespace sql_stmt ? whitespace semicolon )+
 
 sql_stmt =
 ( ( EXPLAIN ( QUERY PLAN )? )? (
@@ -113,10 +113,11 @@ create_virtual_table_stmt =
 ( ( CREATE VIRTUAL TABLE ( database_name dot )? table_name ) ( USING module_name ( lparen ( module_argument comma )+ rparen )? ) )
 
 delete_stmt =
-( DELETE FROM qualified_table_name ( WHERE expr )? )
+  DELETE FROM qualified_table_name ( WHERE whitespace expr )?
 
 delete_stmt_limited =
-( ( DELETE FROM qualified_table_name ( WHERE expr )? ) ( ( ( ORDER BY ( ordering_term comma )+ )? ( LIMIT expr ( ( OFFSET / comma ) expr )? ) ) )? )
+  DELETE FROM qualified_table_name ( WHERE whitespace expr )?
+  ( ( ( ORDER BY ( ordering_term comma )+ )? ( LIMIT expr ( ( OFFSET / comma ) expr )? ) ) )?
 
 detach_stmt =
 ( DETACH ( DATABASE )? database_name )
@@ -138,10 +139,11 @@ expr =
   / bind_parameter
   / ( ( ( database_name dot )? table_name dot )? column_name )
   / ( unary_operator expr )
-  / ( expr binary_operator expr )
   / ( function_name lparen ( ( DISTINCT ? ( expr comma )+ ) / star )? rparen )
   / ( lparen expr rparen )
   / ( CAST lparen expr AS type_name rparen )
+/*
+  / ( expr binary_operator expr )
   / ( expr COLLATE collation_name )
   / ( expr NOT ? ( LIKE / GLOB / REGEXP / MATCH ) expr ( ESCAPE expr )? )
   / ( expr ( ISNULL / NOTNULL / ( NOT NULL ) ) )
@@ -149,6 +151,7 @@ expr =
   / ( expr NOT ? BETWEEN expr AND expr )
   / ( expr NOT ? IN ( ( lparen ( select_stmt / ( expr comma )+ )? rparen )
                          / ( ( database_name dot )? table_name ) ) )
+*/
   / ( ( NOT ? EXISTS )? lparen select_stmt rparen )
   / ( CASE expr ? ( WHEN expr THEN expr )+ ( ELSE expr )? END )
   / raise_function )
@@ -176,15 +179,15 @@ reindex_stmt =
   ( REINDEX collation_name ( ( database_name dot )? table_name index_name ) )
 
 select_stmt =
-  ( select_core compound_operator )+
-  ( ORDER BY ( ordering_term comma )+ )?
+  select_core (compound_operator select_core )*
+  ( ORDER BY ordering_term (whitespace comma ordering_term)* )?
   ( LIMIT expr ( ( OFFSET / comma ) expr )? )?
 
 select_core =
   SELECT ( DISTINCT / ALL )?
-         ( result_column comma )+
+         ( result_column ( whitespace comma result_column )* )
   ( FROM join_source )?
-  ( WHERE expr )?
+  ( WHERE whitespace expr )?
   ( GROUP BY ( ordering_term comma )+ ( HAVING expr )? )?
 
 result_column =
@@ -215,16 +218,22 @@ join_constraint =
   / ( USING lparen ( column_name comma )+ rparen ) )?
 
 ordering_term =
+  whitespace
   ( expr ( COLLATE collation_name )? ( ASC / DESC )? )
 
 compound_operator =
-( ( UNION ( ALL )? ) / INTERSECT / EXCEPT )
+  ( ( UNION ALL ? )
+  / INTERSECT
+  / EXCEPT )
 
 update_stmt =
-( ( UPDATE ( OR ( ROLLBACK / ABORT / REPLACE / FAIL / IGNORE ) )? qualified_table_name ) ( SET ( ( column_name equal expr ) comma )+ ( WHERE expr )? ) )
+  ( UPDATE ( OR ( ROLLBACK / ABORT / REPLACE / FAIL / IGNORE ) )? qualified_table_name )
+  ( SET ( ( column_name equal expr ) comma )+ ( WHERE whitespace expr )? )
 
 update_stmt_limited =
-( ( UPDATE ( OR ( ROLLBACK / ABORT / REPLACE / FAIL / IGNORE ) )? qualified_table_name ) ( SET ( ( column_name equal expr ) comma )+ ( WHERE expr )? ) ( ( ( ORDER BY ( ordering_term comma )+ )? ( LIMIT expr ( ( OFFSET / comma ) expr )? ) ) )? )
+  ( UPDATE ( OR ( ROLLBACK / ABORT / REPLACE / FAIL / IGNORE ) )? qualified_table_name )
+  ( SET ( ( column_name equal expr ) comma )+ ( WHERE whitespace expr )? )
+  ( ( ( ORDER BY ( ordering_term comma )+ )? ( LIMIT expr ( ( OFFSET / comma ) expr )? ) ) )?
 
 qualified_table_name =
   ( ( database_name dot )? table_name ( ( INDEXED BY index_name ) / ( NOT INDEXED ) )? )
@@ -254,8 +263,10 @@ string_literal = '"' (escape_char / [^"])* '"'
 escape_char = '\\' .
 nil = ''
 
-whitespace = [\s]*
-whitespace1 = [\s]+
+whitespace =
+  [ \t\n\r]*
+whitespace1 =
+  [ \t\n\r]+
 
 unary_operator = '-' / '+' / '~' / 'NOT'
 binary_operator =
@@ -328,13 +339,15 @@ COLUMN = whitespace1 "COLUMN"
 COMMIT = whitespace1 "COMMIT"
 CONFLICT = whitespace1 "CONFLICT"
 CONSTRAINT = whitespace1 "CONSTRAINT"
-CREATE = whitespace1 "CREATE"
+CREATE =
+  whitespace "CREATE"
 CROSS = whitespace1 "CROSS"
 DATABASE = whitespace1 "DATABASE"
 DEFAULT = whitespace1 "DEFAULT"
 DEFERRABLE = whitespace1 "DEFERRABLE"
 DEFERRED = whitespace1 "DEFERRED"
-DELETE = whitespace1 "DELETE"
+DELETE =
+  whitespace "DELETE"
 DESC = whitespace1 "DESC"
 DETACH = whitespace1 "DETACH"
 DISTINCT = whitespace1 "DISTINCT"
@@ -365,7 +378,8 @@ INDEX = whitespace1 "INDEX"
 INDEXED = whitespace1 "INDEXED"
 INITIALLY = whitespace1 "INITIALLY"
 INNER = whitespace1 "INNER"
-INSERT = whitespace1 "INSERT"
+INSERT =
+  whitespace "INSERT"
 INSTEAD = whitespace1 "INSTEAD"
 INTERSECT = whitespace1 "INTERSECT"
 INTO = whitespace1 "INTO"
@@ -398,7 +412,8 @@ REGEXP = whitespace1 "REGEXP"
 REINDEX = whitespace1 "REINDEX"
 RELEASE = whitespace1 "RELEASE"
 RENAME = whitespace1 "RENAME"
-REPLACE = whitespace1 "REPLACE"
+REPLACE =
+  whitespace "REPLACE"
 RESTRICT = whitespace1 "RESTRICT"
 ROLLBACK = whitespace1 "ROLLBACK"
 ROW = whitespace1 "ROW"
@@ -415,7 +430,8 @@ TRANSACTION = whitespace1 "TRANSACTION"
 TRIGGER = whitespace1 "TRIGGER"
 UNION = whitespace1 "UNION"
 UNIQUE = whitespace1 "UNIQUE"
-UPDATE = whitespace1 "UPDATE"
+UPDATE =
+  whitespace "UPDATE"
 USING = whitespace1 "USING"
 VACUUM = whitespace1 "VACUUM"
 VALUES = whitespace1 "VALUES"
