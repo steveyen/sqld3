@@ -235,11 +235,19 @@ join_source =
 
 single_source =
   ( whitespace
-    ( ( ( database_name dot )? table_name ( AS ? table_alias )?
-        ( ( INDEXED BY index_name )
-          / ( NOT INDEXED ) )? )
-      / ( lparen select_stmt rparen ( AS ? table_alias )? )
-      / ( lparen join_source rparen ) ) )
+    ( ( t: ( ( database_name dot )? table_name )
+        a: ( ( AS ? table_alias )? )
+        i: ( ( ( INDEXED BY index_name )
+              / ( NOT INDEXED ) )? ) )
+        { return { table: flatstr(t),
+                   alias: flatstr(a),
+                   index: flatstr(i) } }
+      / ( lparen s: select_stmt rparen a: ( AS ? table_alias )? )
+        { return { select: flatstr(s),
+                   alias: flatstr(a) } }
+      / ( lparen j: join_source rparen )
+        { return j }
+    ) )
 
 join_op =
   ( whitespace
