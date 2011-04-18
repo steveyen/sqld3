@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<script type="text/javascript" src="/js/peg-0.6.1.min.js"></script>
+<script type="text/javascript" src="/js/qunit/qunit.js"></script>
+<script type="text/javascript" src="/js/misc.js"></script>
+<link rel="stylesheet" type="text/css" href="/js/qunit/qunit.css" media="screen">
+</head>
+<body>
+<script type="text/pegjs" id="calc_pegjs">
+start
+  = additive
+
+additive
+  = left:multiplicative "+" right:additive { return left + right; }
+  / multiplicative
+
+multiplicative
+  = left:primary "*" right:multiplicative { return left * right; }
+  / primary
+
+primary
+  = integer
+  / "(" additive:additive ")" { return additive; }
+
+integer "integer"
+  = digits:[0-9]+ { return parseInt(digits.join(""), 10); }
+</script>
+<script>
+module("misc", {
+  setup: function() {
+  }
+});
+
+test("flatten", 9, function() {
+  deepEqual(flatten(null), [null]);
+  deepEqual(flatten(undefined), [undefined]);
+  deepEqual(flatten([]), []);
+  deepEqual(flatten([[]]), []);
+  deepEqual(flatten([null, [null]]), [null, null]);
+  deepEqual(flatten([1]), [1]);
+  deepEqual(flatten([1, []]), [1]);
+  deepEqual(flatten([1,2,3]), [1,2,3]);
+  deepEqual(flatten([1,{},3]), [1,{},3]);
+});
+</script>
+
+<div>
+  <h1 id="qunit-header">Misc Test Suite</h1>
+  <h2 id="qunit-banner"></h2>
+  <div id="qunit-testrunner-toolbar"></div>
+  <h2 id="qunit-userAgent"></h2>
+  <ol id="qunit-tests"></ol>
+  <div id="qunit-fixture">test markup</div>
+</div>
+</body>
+</html>

@@ -3,14 +3,29 @@
 // or with comments have manual edits.
 //
 {
+  function append(arr, x) {
+    arr[arr.length] = x;
+    return arr;
+  }
   function flatten(x, rejectSpace, acc) {
     acc = acc || [];
-    if ((x.length == undefined) || // Just an object, not a string or array.
-        (!rejectSpace ||
-         (typeof(x) != "string" ||
-          !x.match(/^\s*$/)))) {
-      acc[acc.length] = x;
+    if (x == null || x == undefined) {
+      if (!rejectSpace) {
+        return append(acc, x);
+      }
       return acc;
+    }
+    if (x.length == undefined) { // Just an object, not a string or array.
+      return append(acc, x);
+    }
+    if (rejectSpace &&
+        ((x.length == 0) ||
+         (typeof(x) == "string" &&
+          x.match(/^\s*$/)))) {
+      return acc;
+    }
+    if (typeof(x) == "string") {
+      return append(acc, x);
     }
     for (var i = 0; i < x.length; i++) {
       flatten(x[i], rejectSpace, acc);
@@ -47,7 +62,8 @@ sql_stmt =
       / update_stmt / update_stmt_limited
 //    / vacuum_stmt
     ) )
-  { return { explain: flatstr(explain), stmt: stmt } }
+  { return { explain: flatstr(explain),
+             stmt: stmt } }
 
 alter_table_stmt =
   ( ( ALTER TABLE table_ref )
@@ -202,8 +218,15 @@ literal_value =
   / NULL / CURRENT_TIME / CURRENT_DATE / CURRENT_TIMESTAMP )
 
 numeric_literal =
-  ( ( ( ( digit )+ ( decimal_point ( digit )+ )? )
-      / ( decimal_point ( digit )+ ) ) ( E ( plus / minus )? ( digit )+ )? )
+  digits:( ( ( ( digit )+ ( decimal_point ( digit )+ )? )
+           / ( decimal_point ( digit )+ ) )
+           ( E ( plus / minus )? ( digit )+ )? )
+  { var x = flatstr(digits);
+    if (x.indexOf('.') >= 0) {
+      return parseFloat(x);
+    }
+    return parseInt(x);
+  }
 
 insert_stmt =
   ( ( ( INSERT ( OR ( ROLLBACK / ABORT / REPLACE / FAIL / IGNORE ) )? )
@@ -247,10 +270,14 @@ select_core =
 
 result_column =
   ( whitespace
-    ( ( ( call_function
-        / column_ref)
-        ( ( AS )? whitespace column_alias )? )
-      / ( ( table_name dot )? star ) ) )
+    ( ( c: ( call_function
+           / column_ref)
+        a: ( AS ? whitespace a: column_alias
+             { return a })? )
+      { return { column: c,
+                 alias: a } }
+      / s: ( ( table_name dot )? star )
+        { star: s } ) )
 
 join_source =
   ( single_source ( join_op single_source join_constraint )* )
@@ -258,13 +285,15 @@ join_source =
 single_source =
   ( whitespace
     ( ( t: ( ( database_name dot )? table_name )
-        a: ( ( AS ? table_alias )? )
+        a: ( ( AS ? a: table_alias
+               { return a })? )
         i: ( ( ( INDEXED BY index_name )
               / ( NOT INDEXED ) )? ) )
         { return { table: flatstr(t, true),
                    alias: flatstr(a, true),
                    index: flatstr(i, true) } }
-      / ( lparen s: select_stmt rparen a: ( AS ? table_alias )? )
+      / ( lparen s: select_stmt rparen a: ( AS ? a: table_alias
+                                           { return a })? )
         { return { select: flatstr(s, true),
                    alias: flatstr(a, true) } }
       / ( lparen j: join_source rparen )
@@ -363,7 +392,10 @@ digit = [0-9]
 decimal_point = dot
 equal = '='
 
-name = [A-Za-z0-9_]+
+name =
+  str:[A-Za-z0-9_]+
+  { return str.join('') }
+
 database_name = name
 table_name = name
 table_alias = name
