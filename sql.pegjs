@@ -1,6 +1,11 @@
-// Originally generated from tmp/rules.rb and bubble-to-pegjs_ex.rb
-// and manually edited for pegjs suitability.  Rules with indentation
-// or with comments have manual edits.
+// Originally generated from...
+//   1) sql-bubble.txt (from sqlite.org)
+//   2) ./sql-bubble.rb sql-bubble.txt > tmp/rules.rb
+//   3) ./bubble-to-pegjs.rb tmp/rules.rb bubble-to-pegjs_ex.rb > tmp/sql.pegjs
+//
+// Then, manually edited for pegjs suitability.
+//
+// Rules with indentation or with comments have manual edits.
 //
 {
   function append(arr, x) {
