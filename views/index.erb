@@ -6,40 +6,24 @@
 <link rel="stylesheet" type="text/css" href="/js/qunit/qunit.css" media="screen">
 </head>
 <body>
-<script type="text/pegjs" id="calc_pegjs">
+<script type="text/pegjs" id="sql_pegjs">
 <%= File.open("sql.pegjs", "r") {|f| f.read } %>
 </script>
 <script>
+var sql_pegjs;
+
 module("PEG", {
   setup: function() {
-    ok(PEG);
+    sql_pegjs = document.getElementById("sql_pegjs").innerHTML;
   }
 });
 
-test("basics", 6, function() {
-  var parser = PEG.buildParser("start = ('a' / 'b')+");
+test("basics", 1, function() {
+  var parser = PEG.buildParser(sql_pegjs);
   ok(parser);
-  deepEqual(parser.parse("a"), ["a"]);
-  deepEqual(parser.parse("abba"), ["a", "b", "b", "a"]);
-  raises(function() {
-    parser.parse("abbd");
-  });
-  raises(function() {
-    parser.parse("");
-  });
-});
-
-test("calc", 7, function() {
-  calc_pegjs = document.getElementById("calc_pegjs").innerHTML;
-  ok(calc_pegjs);
-  var parser = PEG.buildParser(calc_pegjs);
-  ok(parser);
-  equal(parser.parse("2"), 2);
-  equal(parser.parse("2*(3+4)"), 14);
-  equal(parser.parse("2*((9+4))"), 26);
-  raises(function() {
-    parser.parse(" 2 ");
-  });
+  var s = parser.parse(
+    "SELECT a.x AS foo, b.y, x.*, * FROM a, b.a, d, d1.a1 AS b1;");
+  deepEqual(s, []);
 });
 </script>
 

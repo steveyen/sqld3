@@ -7,39 +7,21 @@
 <link rel="stylesheet" type="text/css" href="/js/qunit/qunit.css" media="screen">
 </head>
 <body>
-<script type="text/pegjs" id="calc_pegjs">
-start
-  = additive
-
-additive
-  = left:multiplicative "+" right:additive { return left + right; }
-  / multiplicative
-
-multiplicative
-  = left:primary "*" right:multiplicative { return left * right; }
-  / primary
-
-primary
-  = integer
-  / "(" additive:additive ")" { return additive; }
-
-integer "integer"
-  = digits:[0-9]+ { return parseInt(digits.join(""), 10); }
-</script>
 <script>
 module("misc", {
   setup: function() {
   }
 });
 
-test("flatten", 9, function() {
+test("flatten", 10, function() {
   deepEqual(flatten(null), [null]);
   deepEqual(flatten(undefined), [undefined]);
   deepEqual(flatten([]), []);
   deepEqual(flatten([[]]), []);
   deepEqual(flatten([null, [null]]), [null, null]);
   deepEqual(flatten([1]), [1]);
-  deepEqual(flatten([1, []]), [1]);
+  deepEqual(flatten([1, []], true), [1]);
+  deepEqual(flatten([1, ""], true), [1]);
   deepEqual(flatten([1,2,3]), [1,2,3]);
   deepEqual(flatten([1,{},3]), [1,{},3]);
 });

@@ -40,20 +40,45 @@
   function flatstr(x, rejectSpace, joinChar) {
     return flatten(x, rejectSpace, []).join(joinChar || '');
   }
+  function filter(arr, x) {
+    var acc = [];
+    for (var i = 0; i < arr.length; i++) {
+      if (arr[i] != x) {
+        acc[length] = arr[i];
+      }
+    }
+    return acc;
+  }
+  function nonempty(x) {             // Ex: nonempty("") == null;
+    if (x == null || x.length > 0) { // Ex: nonempty(null) == null;
+       return x;
+    }
+    return null;
+  }
+  function put_if_not_null(m, key, val) {
+    if (val) {
+      m[key] = val;
+    }
+    return m;
+  }
+  function merge(src, dst) {
+    for (var k in src) {
+      dst[k] = src[k];
+    }
+    return dst;
+  }
 }
 
 start = sql_stmt_list
 
 sql_stmt_list =
-  ( whitespace ( sql_stmt )? whitespace semicolon )+
+  r: ( whitespace ( sql_stmt )? whitespace semicolon )+
+  { return filter(flatten(r, true), ';') }
 
 sql_stmt =
   ( explain: ( EXPLAIN ( QUERY PLAN )? )?
-    stmt: (
-      select_stmt
-    ) )
-  { return { explain: flatstr(explain),
-             stmt: stmt } }
+    stmt: select_stmt )
+  { return put_if_not_null(stmt, "explain", nonempty(flatstr(explain))) }
 
 // For now, just concentrate of SELECT statements only, although
 // we have all the machinery for all other statements, too.
@@ -265,79 +290,114 @@ reindex_stmt =
   ( REINDEX collation_name ( table_ref index_name ) )
 
 select_stmt =
-  ( select_core: ( select_core ( compound_operator select_core )* )
+  ( select_cores: ( select_core
+                    ( sc: ( compound_operator select_core )*
+                          { var acc = [];
+                            for (var i = 0; i < sc.length; i++) {
+                              acc[i] = merge(sc[i][0], sc[i][1]);
+                            }
+                            return acc;
+                          } ) )
     order_by: ( ( ORDER BY ordering_term ( whitespace comma ordering_term )* )? )
     limit: ( ( LIMIT expr ( ( OFFSET / comma ) expr )? )? ) )
-  { return { select_core: select_core,
-             order_by: order_by,
-             limit: limit } }
+  { var res = { stmt: "select",
+                select_cores: flatten(select_cores, true) };
+    res = put_if_not_null(res, "order_by", nonempty(order_by));
+    res = put_if_not_null(res, "limit", nonempty(limit));
+    return res;
+  }
 
 select_core =
   ( SELECT d: ( ( DISTINCT / ALL )? )
-           c: ( result_column ( whitespace comma result_column )* )
-    f: ( ( FROM join_source )? )
+           c: ( select_result
+                ( cx: ( whitespace comma select_result )*
+                      { var acc = [];
+                        for (var i = 0; i < cx.length; i++) {
+                          acc[i] = cx[i][2];
+                        }
+                        return acc;
+                      } ) )
+    f: ( j: ( ( FROM join_source )? )
+         { return j ? j[1] : [] } )
     w: ( ( WHERE expr )? )
     g: ( GROUP BY ( ordering_term comma )+ ( HAVING expr )? )? )
-  { return { distinct: flatstr(d),
-             columns: c,
-             from: f,
-             where: w,
-             group_by: g } }
+  { c[1].unshift(c[0]);
+    var res = { results: c[1] };
+    res = put_if_not_null(res, "distinct", nonempty(flatstr(d)));
+    res = put_if_not_null(res, "from", nonempty(f));
+    res = put_if_not_null(res, "where", nonempty(w));
+    res = put_if_not_null(res, "group_by", nonempty(g));
+    return res;
+  }
 
-result_column =
-  ( whitespace
-    ( ( c: ( call_function
-           / column_ref)
-        a: ( AS ? whitespace a: column_alias
-             { return a })? )
-      { return { column: c,
-                 alias: a } }
-      / s: ( ( table_name dot )? star )
-        { star: s } ) )
+select_result =
+  r: ( whitespace
+       ( ( c: ( column_ref ( a: ( AS whitespace column_alias )
+                             { return { alias: a[2] } } )? )
+              { return merge(c[1], c[0]) } )
+       / ( c: ( table_name dot star )
+              { return { table: c[0],
+                         column: '*' } } )
+       / ( star
+           { return { column: '*' } } ) ) )
+  { return r[1] }
 
 join_source =
-  ( single_source ( join_op single_source join_constraint )* )
+  s: ( single_source ( join_op single_source join_constraint )* )
+  { var acc = [s[0]];
+    var cdr = s[1];
+    for (var i = 0; cdr != null && i < cdr.length; i++) {
+      acc[i] = merge(merge(cdr[i][0], cdr[i][1]), cdr[i][2]);
+    }
+    return acc;
+  }
 
 single_source =
-  ( whitespace
-    ( ( t: ( ( database_name dot )? table_name )
-        a: ( ( AS ? a: table_alias
-               { return a })? )
-        i: ( ( ( INDEXED BY index_name )
-              / ( NOT INDEXED ) )? ) )
-        { return { table: flatstr(t, true),
-                   alias: flatstr(a, true),
-                   index: flatstr(i, true) } }
-      / ( lparen s: select_stmt rparen a: ( AS ? a: table_alias
-                                           { return a })? )
-        { return { select: flatstr(s, true),
-                   alias: flatstr(a, true) } }
-      / ( lparen j: join_source rparen )
-        { return j }
-    ) )
+  r: ( whitespace
+       ( ( s: ( ( t: ( table_ref ( a: ( AS whitespace table_alias )
+                                   { return { alias: a[2] } } )? )
+                  { return merge(t[1], t[0]) } )
+                ( ( idx: ( INDEXED BY whitespace index_name )
+                    { return { indexed_by: idx[3] } } )
+                / ( ( NOT INDEXED )
+                    { return { indexed_by: null } } ) )? )
+           { return merge(s[1], s[0]) } )
+       / ( p: ( lparen select_stmt rparen
+                ( a: ( AS whitespace table_alias )
+                  { return { alias: a[2] } } )? )
+           { return merge(p[3], p[1]) } )
+       / ( j: ( lparen join_source rparen )
+           { return j[1] } )
+       ) )
+  { return r[1] }
 
 join_op =
-  ( ( ( NATURAL ?
-        ( ( LEFT ( OUTER )? )
-          / INNER
-          / CROSS )?
-        JOIN )
-    / ( whitespace comma ) ) )
+  r: ( ( ( j: ( NATURAL ?
+                ( ( LEFT ( OUTER )? )
+                  / INNER
+                  / CROSS )?
+                JOIN )
+           { return flatstr(j) } )
+       / ( ( whitespace comma )
+           { return "JOIN" } ) ) )
+  { return { join_op: r } }
 
 join_constraint =
-  ( ( ( ON expr )
-    / ( USING whitespace lparen
-              ( whitespace column_name ( whitespace comma whitespace column_name )* )
-              whitespace rparen ) )? )
+  r: ( ( ( ON expr )
+       / ( USING whitespace lparen
+                 ( whitespace column_name ( whitespace comma whitespace column_name )* )
+                 whitespace rparen ) )? )
+  { return { join_constraint: nonempty(r) } }
 
 ordering_term =
   ( whitespace
     ( expr ( COLLATE collation_name )? ( ASC / DESC )? ) )
 
 compound_operator =
-  ( ( UNION ALL ? )
-  / INTERSECT
-  / EXCEPT )
+  o: ( ( UNION ALL ? )
+     / INTERSECT
+     / EXCEPT )
+  { return { compound_operator: flatstr(o) } }
 
 update_stmt =
   ( ( UPDATE ( OR ( ROLLBACK / ABORT / REPLACE / FAIL / IGNORE ) )? qualified_table_name )
@@ -352,10 +412,16 @@ qualified_table_name =
   ( table_ref ( ( INDEXED BY index_name ) / ( NOT INDEXED ) )? )
 
 table_ref =
-  ( ( database_name dot )? table_name )
+  r: ( ( d: ( database_name dot )
+         { return { database: d[0] } } )?
+       ( x: table_name { return { table: x } } ) )
+  { return merge(r[1], r[0]) }
 
 column_ref =
-  ( ( table_name dot )? column_name )
+  r: ( ( t: ( table_name dot )
+         { return { table: t[0] } } )?
+       ( x: column_name { return { column: x } } ) )
+  { return merge(r[1], r[0]) }
 
 vacuum_stmt =
 VACUUM
