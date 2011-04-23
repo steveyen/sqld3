@@ -268,7 +268,8 @@ select_core =
                       } ) )
     f: ( j: ( ( FROM join_source )? )
          { return j ? j[1] : [] } )
-    w: ( ( WHERE expr )? )
+    w: ( e: ( ( WHERE expr )? )
+         { return e ? e[1] : [] } )
     g: ( GROUP BY ( ordering_term comma )+ ( HAVING expr )? )? )
   { c[1].unshift(c[0]);
     var res = { results: c[1] };

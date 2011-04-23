@@ -58,11 +58,38 @@ test("smoke", 2, function() {
   }]);
 });
 
-test("from-clause", 2, function() {
+test("smoke-from", 2, function() {
   var parser = PEG.buildParser(sql_pegjs);
   ok(parser);
   var s = parser.parse(
     "SELECT * FROM a, b, x AS b1;");
+  deepEqual(s, [
+  {
+    "stmt": "select",
+    "select_cores": [ {
+        "results": [ { "column": "*" } ],
+        "from": [
+          { "table": "a" },
+          { "join_constraint": null,
+            "join_op": "JOIN",
+            "table": "b"
+          },
+          { "join_constraint": null,
+            "join_op": "JOIN",
+            "table": "x",
+            "alias": "b1"
+          }
+        ]
+      }
+    ]
+  }]);
+});
+
+test("smoke-where", 2, function() {
+  var parser = PEG.buildParser(sql_pegjs);
+  ok(parser);
+  var s = parser.parse(
+    "SELECT * FROM a WHERE a = a;");
   deepEqual(s, [
   {
     "stmt": "select",
