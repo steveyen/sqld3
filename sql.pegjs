@@ -34,7 +34,8 @@ sql_stmt =
 //    / create_view_stmt
 //    / create_virtual_table_stmt
 //    / delete_stmt / delete_stmt_limited
-//    / detach_stmt / drop_index_stmt / drop_table_stmt / drop_trigger_stmt / drop_view_stmt
+//    / detach_stmt
+//    / drop_index_stmt / drop_table_stmt / drop_trigger_stmt / drop_view_stmt
 //    / insert_stmt
 //    / pragma_stmt / reindex_stmt / release_stmt / rollback_stmt / savepoint_stmt
 //    / select_stmt
@@ -50,7 +51,9 @@ alter_table_stmt =
     ( ADD ( COLUMN )? column_def ) )
 
 analyze_stmt =
-  ( ANALYZE ( database_name / table_or_index_name / ( database_name dot table_or_index_name ) )? )
+  ( ANALYZE ( database_name
+            / table_or_index_name
+            / ( database_name dot table_or_index_name ) )? )
 
 attach_stmt =
   ( ATTACH ( DATABASE )? expr AS database_name )
@@ -86,7 +89,9 @@ column_def =
   ( column_name ( type_name )? ( column_constraint )+ )
 
 type_name =
-  ( name )+ ( ( lparen signed_number rparen ) / ( lparen signed_number comma signed_number rparen ) )?
+  ( name )+
+  ( ( lparen signed_number rparen )
+  / ( lparen signed_number comma signed_number rparen ) )?
 
 column_constraint =
   ( ( CONSTRAINT name )?
@@ -121,9 +126,14 @@ conflict_clause =
 create_trigger_stmt =
   ( ( CREATE ( TEMP / TEMPORARY )? TRIGGER ( IF NOT EXISTS )? )
     ( ( database_name dot )? trigger_name ( BEFORE / AFTER / ( INSTEAD OF ) )? )
-    ( ( DELETE / INSERT / ( UPDATE ( OF ( column_name comma )+ )? ) ) ON table_name )
+    ( ( DELETE
+      / INSERT
+      / ( UPDATE ( OF ( column_name comma )+ )? ) ) ON table_name )
     ( ( FOR EACH ROW )? ( WHEN expr )? )
-    ( BEGIN ( ( update_stmt / insert_stmt / delete_stmt / select_stmt ) semicolon )+ END ) )
+    ( BEGIN ( ( update_stmt
+              / insert_stmt
+              / delete_stmt
+              / select_stmt ) semicolon )+ END ) )
 
 create_view_stmt =
   ( ( CREATE ( TEMP / TEMPORARY )? VIEW ( IF NOT EXISTS )? )
@@ -138,7 +148,8 @@ delete_stmt =
 
 delete_stmt_limited =
   ( DELETE FROM qualified_table_name ( WHERE expr )?
-    ( ( ( ORDER BY ( ordering_term comma )+ )? ( LIMIT expr ( ( OFFSET / comma ) expr )? ) ) )? )
+    ( ( ( ORDER BY ( ordering_term comma )+ )?
+        ( LIMIT expr ( ( OFFSET / comma ) expr )? ) ) )? )
 
 detach_stmt =
 ( DETACH ( DATABASE )? database_name )
@@ -322,9 +333,10 @@ join_op =
 
 join_constraint =
   r: ( ( ( ON expr )
-       / ( USING whitespace lparen
-                 ( whitespace column_name ( whitespace comma whitespace column_name )* )
-                 whitespace rparen ) )? )
+       / ( USING
+           whitespace lparen
+           ( whitespace column_name ( whitespace comma whitespace column_name )* )
+           whitespace rparen ) )? )
   { return { join_constraint: nonempty(r) } }
 
 ordering_term =
@@ -342,9 +354,14 @@ update_stmt =
     ( SET ( ( column_name equal expr ) comma )+ ( WHERE expr )? ) )
 
 update_stmt_limited =
-  ( ( UPDATE ( OR ( ROLLBACK / ABORT / REPLACE / FAIL / IGNORE ) )? qualified_table_name )
+  ( ( UPDATE ( OR ( ROLLBACK
+                  / ABORT
+                  / REPLACE
+                  / FAIL
+                  / IGNORE ) )? qualified_table_name )
     ( SET ( ( column_name equal expr ) comma )+ ( WHERE expr )? )
-    ( ( ( ORDER BY ( ordering_term comma )+ )? ( LIMIT expr ( ( OFFSET / comma ) expr )? ) ) )? )
+    ( ( ( ORDER BY ( ordering_term comma )+ )?
+        ( LIMIT expr ( ( OFFSET / comma ) expr )? ) ) )? )
 
 qualified_table_name =
   ( table_ref ( ( INDEXED BY index_name ) / ( NOT INDEXED ) )? )
