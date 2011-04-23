@@ -7,6 +7,10 @@
 </head>
 <body>
 <script type="text/pegjs" id="sql_pegjs">
+{
+<%= File.open("public/js/sql.pegjs-head.js", "r") {|f| f.read } %>
+}
+
 <%= File.open("sql.pegjs", "r") {|f| f.read } %>
 </script>
 <script>
