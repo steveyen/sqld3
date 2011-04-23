@@ -292,43 +292,42 @@ select_result =
   { return r[1] }
 
 join_source =
-  s: ( single_source ( join_op single_source join_constraint )* )
-  { var acc = [s[0]];
-    var cdr = s[1];
+  s: ( whitespace single_source
+       ( join_op whitespace single_source join_constraint )* )
+  { var acc = [s[1]];
+    var cdr = s[2];
     for (var i = 0; cdr != null && i < cdr.length; i++) {
-      acc[i] = merge(merge(cdr[i][0], cdr[i][1]), cdr[i][2]);
+      acc[acc.length] = merge(merge(cdr[i][0], cdr[i][2]), cdr[i][3]);
     }
     return acc;
   }
 
 single_source =
-  r: ( whitespace
-       ( ( s: ( ( t: ( table_ref ( a: ( AS whitespace table_alias )
-                                   { return { alias: a[2] } } )? )
-                  { return merge(t[1], t[0]) } )
-                ( ( idx: ( INDEXED BY whitespace index_name )
-                    { return { indexed_by: idx[3] } } )
-                / ( ( NOT INDEXED )
-                    { return { indexed_by: null } } ) )? )
-           { return merge(s[1], s[0]) } )
-       / ( p: ( lparen select_stmt rparen
-                ( a: ( AS whitespace table_alias )
-                  { return { alias: a[2] } } )? )
-           { return merge(p[3], p[1]) } )
-       / ( j: ( lparen join_source rparen )
-           { return j[1] } )
-       ) )
-  { return r[1] }
+  ( ( s: ( ( t: ( table_ref ( a: ( AS whitespace table_alias )
+                              { return { alias: a[2] } } )? )
+             { return merge(t[1], t[0]) } )
+           ( ( idx: ( INDEXED BY whitespace index_name )
+               { return { indexed_by: idx[3] } } )
+           / ( ( NOT INDEXED )
+               { return { indexed_by: null } } ) )? )
+      { return merge(s[1], s[0]) } )
+  / ( p: ( lparen select_stmt rparen
+           ( a: ( AS whitespace table_alias )
+             { return { alias: a[2] } } )? )
+      { return merge(p[3], p[1]) } )
+  / ( j: ( lparen join_source rparen )
+      { return j[1] } )
+  )
 
 join_op =
-  r: ( ( ( j: ( NATURAL ?
+  r: ( ( ( ( whitespace comma )
+           { return "JOIN" } )
+       / ( j: ( NATURAL ?
                 ( ( LEFT ( OUTER )? )
                   / INNER
                   / CROSS )?
                 JOIN )
-           { return flatstr(j) } )
-       / ( ( whitespace comma )
-           { return "JOIN" } ) ) )
+           { return flatstr(j) } ) ) )
   { return { join_op: r } }
 
 join_constraint =

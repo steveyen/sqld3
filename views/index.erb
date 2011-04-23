@@ -22,12 +22,62 @@ module("PEG", {
   }
 });
 
-test("basics", 1, function() {
+test("basics", 2, function() {
   var parser = PEG.buildParser(sql_pegjs);
   ok(parser);
   var s = parser.parse(
-    "SELECT a.x AS foo, b.y, x.*, * FROM a, b.a, d, d1.a1 AS b1;");
-  deepEqual(s, []);
+    "SELECT a.x AS foo, b.y, x.*, * FROM a.x, b.a, d.p, d1.a1 AS b1;");
+  deepEqual(s, [
+  {
+    "stmt": "select",
+    "select_cores": [
+      {
+        "results": [
+          {
+            "table": "a",
+            "column": "x",
+            "alias": "foo"
+          },
+          {
+            "table": "b",
+            "column": "y"
+          },
+          {
+            "table": "x",
+            "column": "*"
+          },
+          {
+            "column": "*"
+          }
+        ],
+        "from": [
+          {
+            "database": "a",
+            "table": "x"
+          },
+          {
+            "join_constraint": null,
+            "database": "b",
+            "table": "a",
+            "join_op": "JOIN"
+          },
+          {
+            "join_constraint": null,
+            "database": "d",
+            "table": "p",
+            "join_op": "JOIN"
+          },
+          {
+            "join_constraint": null,
+            "database": "d1",
+            "table": "a1",
+            "alias": "b1",
+            "join_op": "JOIN"
+          }
+        ]
+      }
+    ]
+  }]);
 });
 </script>
 
