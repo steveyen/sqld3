@@ -295,15 +295,23 @@ join_source =
   s: ( whitespace single_source
        ( join_op whitespace single_source join_constraint )* )
   { var acc = [s[1]];
-    var cdr = s[2];
-    for (var i = 0; cdr != null && i < cdr.length; i++) {
-      acc[acc.length] = merge(merge(cdr[i][0], cdr[i][2]), cdr[i][3]);
+    var rest = s[2];
+    for (var i = 0; rest != null && i < rest.length; i++) {
+      acc[acc.length] = merge(merge(rest[i][0], rest[i][2]), rest[i][3]);
     }
     return acc;
   }
 
 single_source =
-  ( ( s: ( ( t: ( table_ref ( a: ( AS whitespace table_alias )
+  ( ( x: ( database_name dot table_name AS whitespace1 table_alias )
+      { return { database: x[0], table: x[2], alias: x[5] } } )
+  / ( x: ( database_name dot table_name )
+      { return { database: x[0], table: x[2] } } )
+  / ( x: ( table_name AS whitespace1 table_alias )
+      { return { table: x[0], alias: x[3] } } )
+  / ( x: table_name
+      { return { table: x } } )
+  / ( s: ( ( t: ( table_ref ( a: ( AS whitespace1 table_alias )
                               { return { alias: a[2] } } )? )
              { return merge(t[1], t[0]) } )
            ( ( idx: ( INDEXED BY whitespace index_name )
@@ -349,7 +357,11 @@ compound_operator =
   { return { compound_operator: flatstr(o) } }
 
 update_stmt =
-  ( ( UPDATE ( OR ( ROLLBACK / ABORT / REPLACE / FAIL / IGNORE ) )? qualified_table_name )
+  ( ( UPDATE ( OR ( ROLLBACK
+                  / ABORT
+                  / REPLACE
+                  / FAIL
+                  / IGNORE ) )? qualified_table_name )
     ( SET ( ( column_name equal expr ) comma )+ ( WHERE expr )? ) )
 
 update_stmt_limited =
