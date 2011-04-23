@@ -167,31 +167,37 @@ drop_view_stmt =
 ( DROP VIEW ( IF EXISTS )? ( database_name dot )? view_name )
 
 value =
-  ( whitespace
-    value: (
-      literal_value
-    / bind_parameter
-    / column_ref
-    / ( unary_operator expr )
-    / call_function
-    / ( whitespace lparen expr whitespace rparen )
-    / ( CAST lparen expr AS type_name rparen )
-    / ( ( NOT ? EXISTS )? lparen select_stmt rparen )
-    / ( CASE expr ? ( WHEN expr THEN expr )+ ( ELSE expr )? END )
-    / raise_function ) )
-  { return { value: value } }
+  v: ( whitespace
+       ( ( x: literal_value
+           { return { literal: x } } )
+       / ( b: bind_parameter
+           { return { bind: b } } )
+       / ( t: ( table_name dot column_name )
+           { return { column: t[2], table: t[1] } } )
+       / ( c: column_name
+           { return { column: c } } )
+       / ( unary_operator expr )
+       / call_function
+       / ( whitespace lparen expr whitespace rparen )
+       / ( CAST lparen expr AS type_name rparen )
+       / ( ( NOT ? EXISTS )? lparen select_stmt rparen )
+       / ( CASE expr ? ( WHEN expr THEN expr )+ ( ELSE expr )? END )
+       / raise_function ) )
+  { return v[1] }
 
 expr =
-  ( whitespace
-    ( ( value binary_operator expr )
-    / ( value COLLATE collation_name )
-    / ( value NOT ? ( LIKE / GLOB / REGEXP / MATCH ) expr ( ESCAPE expr )? )
-    / ( value ( ISNULL / NOTNULL / ( NOT NULL ) ) )
-    / ( value IS NOT ? expr )
-    / ( value NOT ? BETWEEN expr AND expr )
-    / ( value NOT ? IN ( ( lparen ( select_stmt / ( expr comma )+ )? rparen )
-                       / table_ref ) )
-    / value ) )
+  e: ( whitespace
+       ( ( value binary_operator expr )
+       / ( value COLLATE collation_name )
+       / ( value NOT ? ( LIKE / GLOB / REGEXP / MATCH ) expr ( ESCAPE expr )? )
+       / ( value ( ISNULL / NOTNULL / ( NOT NULL ) ) )
+       / ( value IS NOT ? expr )
+       / ( value NOT ? BETWEEN expr AND expr )
+       / ( value NOT ? IN ( ( lparen ( select_stmt / ( expr comma )+ )? rparen )
+                          / table_ref ) )
+       / value ) )
+  { return e[1]; }
+
 
 call_function =
   ( function_name
@@ -381,13 +387,15 @@ qualified_table_name =
 table_ref =
   r: ( ( d: ( database_name dot )
          { return { database: d[0] } } )?
-       ( x: table_name { return { table: x } } ) )
+       ( x: table_name
+         { return { table: x } } ) )
   { return merge(r[1], r[0]) }
 
 column_ref =
   r: ( ( t: ( table_name dot )
          { return { table: t[0] } } )?
-       ( x: column_name { return { column: x } } ) )
+       ( x: column_name
+         { return { column: x } } ) )
   { return merge(r[1], r[0]) }
 
 vacuum_stmt =
@@ -421,21 +429,23 @@ whitespace1 =
   [ \t\n\r]+
 
 unary_operator =
-  ( whitespace
-    ( '-' / '+' / '~' / 'NOT') )
+  x: ( whitespace
+       ( '-' / '+' / '~' / 'NOT') )
+  { return x[1] }
 
 binary_operator =
-  ( whitespace
-    ('||'
-     / '*' / '/' / '%'
-     / '+' / '-'
-     / '<<' / '>>' / '&' / '|'
-     / '<=' / '>='
-     / '<' / '>'
-     / '=' / '==' / '!=' / '<>'
-     / 'IS' / 'IS NOT' / 'IN' / 'LIKE' / 'GLOB' / 'MATCH' / 'REGEXP'
-     / 'AND'
-     / 'OR') )
+  x: ( whitespace
+       ('||'
+        / '*' / '/' / '%'
+        / '+' / '-'
+        / '<<' / '>>' / '&' / '|'
+        / '<=' / '>='
+        / '<' / '>'
+        / '=' / '==' / '!=' / '<>'
+        / 'IS' / 'IS NOT' / 'IN' / 'LIKE' / 'GLOB' / 'MATCH' / 'REGEXP'
+        / 'AND'
+        / 'OR') )
+  { return x[1] }
 
 digit = [0-9]
 decimal_point = dot
@@ -460,7 +470,8 @@ trigger_name = name
 view_name = name
 module_name = name
 module_argument = name
-bind_parameter = name
+bind_parameter =
+  '?' name
 function_name = name
 pragma_name = name
 
